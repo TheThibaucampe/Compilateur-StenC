@@ -10,7 +10,8 @@ IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 /*Revoir constant pour les notations hexa, octa, binaire*/
 NUMBER ([0-9]+)|([0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?[alLfF]?)
 STRING \"[^\"]*\"
-OPERATOR "+"|"-"|"*"|"/"|"++"|"--"|"$"|"="|"<"|">"|"<="|">="|"=="|"!="|"&&"
+OPERATOR "+"|"-"|"*"|"/"|"$"|"="|"<"|">"|"<="|">="|"=="|"!="|"&&"
+UNARY_POSTFIX_OPERATOR "++" | "--"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"||"|"#"|","|";"
 PREPROC (\<[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\>)|(\"[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\")
 COMMENT ("//".*\n)|(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)
