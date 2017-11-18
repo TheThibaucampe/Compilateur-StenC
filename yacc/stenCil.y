@@ -28,6 +28,8 @@
 
 %left '+'
 %left '*'
+%left '/'
+%left '-'
 
 %%
 
@@ -52,6 +54,28 @@ expression:
       $$.code = quadsConcat($1.code,$3.code,newQuads);
       printf("expression -> expression + expression\n");
     }
+  | expression '-' expression
+    {
+      $$.result = newtemp(&tds);
+      struct symbol* arg1 = lookup(tds,$1.result->nom);
+      struct symbol* arg2 = lookup(tds,$3.result->nom);
+      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
+
+
+      $$.code = quadsConcat($1.code,$3.code,newQuads);
+      printf("expression -> expression * expression\n");
+    }
+  | expression '/' expression
+    {
+      $$.result = newtemp(&tds);
+      struct symbol* arg1 = lookup(tds,$1.result->nom);
+      struct symbol* arg2 = lookup(tds,$3.result->nom);
+      struct quads* newQuads= quadsGen("/",arg1,arg2,$$.result);
+
+
+      $$.code = quadsConcat($1.code,$3.code,newQuads);
+      printf("expression -> expression * expression\n");
+    }
   | expression '*' expression
     {
       $$.result = newtemp(&tds);
@@ -68,18 +92,7 @@ expression:
       $$=$2;
       printf("expression -> ( expression )\n");
     }
-  | expression "++"
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = newtemp(&tds);
-      arg2->valeur = 1;
-      struct quads* newQuads = quadsGen("+",arg1,arg2,$$.result);
 
-
-      $$.code = quadsConcat($1.code,NULL,newQuads);
-      printf("expression -> expression ++\n");
-    }
   | IDENTIFIER
     {
       $$.result = lookup(tds, $1);
