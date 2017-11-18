@@ -1,0 +1,7 @@
+stenCil
+*.o
+y.tab.c
+lex.yy.c
+y.tab.h
+
+*.swp
