@@ -93,6 +93,20 @@ expression:
       printf("expression -> ( expression )\n");
     }
 
+  | '-' expression
+    {
+      $$.result = newtemp(&tds);
+      struct symbol* arg1 = newtemp(&tds);
+      arg1->valeur = 0;
+      struct symbol* arg2 = lookup(tds,$2.result->nom);
+      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
+
+
+      $$.code = quadsConcat(NULL,$2.code,newQuads);
+      printf("expression -> - expression\n");
+
+    }
+
   | IDENTIFIER
     {
       $$.result = lookup(tds, $1);
