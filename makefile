@@ -3,7 +3,7 @@ LEX = lex
 YACC = yacc -d
 CFLAGS = -O2 -Wall -Iinclude
 LDFLAGS = -ly -lfl -Iinclude
-EXEC = expr
+EXEC = stenCil
 
 all: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
 	$(CC) -g $^ -o stenCil  $(LDFLAGS)
