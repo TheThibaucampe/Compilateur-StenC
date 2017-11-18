@@ -24,12 +24,14 @@
 
 %token <string>IDENTIFIER
 %token <value>NUMBER
+%token <string>OPERATOR
 %type <codegen>expression
 
 %left '+'
 %left '*'
 %left '/'
 %left '-'
+%left OPERATOR
 
 %%
 
@@ -43,50 +45,18 @@ axiom:
   ;
 
 expression:
-    expression '+' expression
+    expression OPERATOR expression
     { 
       $$.result = newtemp(&tds);
       struct symbol* arg1 = lookup(tds,$1.result->nom);
       struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads = quadsGen("+",arg1,arg2,$$.result);
+      struct quads* newQuads = quadsGen($2,arg1,arg2,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression + expression\n");
+      printf("expression -> expression %s expression\n",$2);
     }
-  | expression '-' expression
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
 
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression * expression\n");
-    }
-  | expression '/' expression
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads= quadsGen("/",arg1,arg2,$$.result);
-
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression * expression\n");
-    }
-  | expression '*' expression
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads= quadsGen("*",arg1,arg2,$$.result);
-
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression * expression\n");
-    }
   | '(' expression ')'
     {
       $$=$2;

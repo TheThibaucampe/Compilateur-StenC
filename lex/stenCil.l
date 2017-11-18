@@ -27,7 +27,9 @@ SPACES \n|\t
 {NUMBER}		{yylval.value = atoi(yytext);
 			return NUMBER;}
 {STRING}		{yylval.string = strdup(yytext);}
-{OPERATOR}		{return yytext[0];}
+{OPERATOR}		{yylval.string = strdup(yytext);
+			return OPERATOR;}
+{PUNCTUATION}		{return yytext[0];}
 
 .            	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
