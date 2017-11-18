@@ -1,23 +1,24 @@
 CC = gcc
 LEX = lex
 YACC = yacc -d
-CFLAGS = -O2 -Wall
-LDFLAGS = -ly -lfl
+CFLAGS = -O2 -Wall -Iinclude
+LDFLAGS = -ly -lfl -Iinclude
 EXEC = expr
-SRC = tds.c quads.c
-OBJ = $(SRC:.c=.o)
 
-all: $(OBJ) y.tab.c lex.yy.c
-	$(CC) -g -o $(EXEC) $^ $(LDFLAGS)
+all: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
+	$(CC) -g $^ -o stenCil  $(LDFLAGS)
 
-y.tab.c: $(EXEC).y
-	$(YACC) $(EXEC).y
+src/y.tab.c: yacc/$(EXEC).y
+	$(YACC) yacc/$(EXEC).y
+	mv y.tab.c src/
+	mv y.tab.h include/
 
-lex.yy.c: $(EXEC).l
-	$(LEX) $(EXEC).l
+src/lex.yy.c: lex/$(EXEC).l
+	$(LEX) lex/$(EXEC).l
+	mv lex.yy.c src/
 
-%.o: %.c
+obj/%.o: src/%.c
 	$(CC) -g -o $@ -c $< $(CFLAGS)
 
 clean:
-	/bin/rm $(EXEC) *.o y.tab.c y.tab.h lex.yy.c
+	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil
