@@ -5,7 +5,7 @@ CFLAGS = -O2 -Wall -Iinclude
 LDFLAGS = -ly -lfl -Iinclude
 EXEC = stenCil
 
-all: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
+stenCil: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
 	$(CC) -g $^ -o stenCil  $(LDFLAGS)
 
 src/y.tab.c: yacc/$(EXEC).y
