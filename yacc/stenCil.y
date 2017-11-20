@@ -26,22 +26,36 @@
 %token <value>NUMBER
 %token <string>OPERATOR
 %type <codegen>expression
+%type <codegen>statement
+%type <codegen>ligne
 
-%left '+'
-%left '*'
-%left '/'
+
 %left '-'
 %left OPERATOR
+
+%start axiom
 
 %%
 
 axiom:
-    expression '\n'
-    { 
+    ligne
+    {
       quadsFinal = $1.code;
       printf("Match :-) !\n");
       return 0;
     }
+;
+
+ligne:
+    '\n' ligne	{printf("retour chariot\n");}
+    | statement ';' ligne	{printf("ligne -> statement ; ligne\n");}
+    | '\n'	{printf("Epsilon ligne\n");}	//TODO demander a bastoul
+  ;
+
+
+
+statement:
+    expression	{printf("statement -> expression\n");}
   ;
 
 expression:
@@ -62,6 +76,7 @@ expression:
       $$=$2;
       printf("expression -> ( expression )\n");
     }
+
 
   | '-' expression
     {
@@ -90,6 +105,7 @@ expression:
       $$.code = NULL;
       printf("expression -> IDENTIFIER (%s)\n", $1);
     }
+
   | NUMBER
     {
       $$.result = newtemp(&tds);
