@@ -51,21 +51,49 @@ axiom:
 ;
 
 line:
-    statement line	{}
-    | struct_control line	{}
+    statement line
+    {
+      $$.code = quadsConcat($1.code,$2.code,NULL);
+      printf("line -> statement line\n");
+    }
+
+    | struct_control line
+    {
+      $$.code = quadsConcat($1.code,$2.code,NULL);
+      printf("line -> struct_control line\n");
+    }
+
 	//function line
-    | '\n'	{printf("Epsilon statement\n");}	//TODO demander a bastoul
-    | '\n' line	{printf("retour chariot\n");}
+
+
+    | '\n'
+      {
+        printf("\\n\n");
+      }	//TODO demander a bastoul
+
+    | '\n' line
+      {
+        $$=$2;
+        printf("\\n line\n");
+      }
    ;
 
 statement:
-    code_line ';'	{printf("statement -> code_line ; statement\n");}
+    code_line ';'
+    {
+      $$=$1;
+      printf("statement -> code_line ;\n");
+    }
   ;
 
 
 
 code_line:
-    expression	{printf("code_line -> expression\n");}
+    expression
+    {
+      $$=$1;
+      printf("code_line -> expression\n");
+    }
 	//TODO attribution
   ;
 
