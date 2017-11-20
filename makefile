@@ -2,7 +2,11 @@ CC = gcc
 LEX = lex
 YACC = yacc -d #--report=all
 CFLAGS = -O2 -Wall -Iinclude
-LDFLAGS = -ly -lfl -Iinclude
+ifeq ($(OS),Darwin)
+	LDFLAGS = -ly -ll -Iinclude
+else
+	LDFLAGS = -ly -lfl -Iinclude
+endif
 EXEC = stenCil
 
 stenCil: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
