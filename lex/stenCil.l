@@ -20,8 +20,13 @@ SPACES \n|\t|" "
 
 %%
 
-{COMMENT}		{return yytext[0];}
+{COMMENT}			{return yytext[0];}
 {SPACES}      		{return yytext[0];}
+{KEYWORD}			{	if (strcmp("if", yytext) == 0)
+						{
+							yylval.string = strdup(yytext); return IF;
+						}
+					}
 {IDENTIFIER}		{yylval.string = strdup(yytext);
 			return IDENTIFIER;}
 {NUMBER}		{yylval.value = atoi(yytext);
