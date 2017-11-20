@@ -26,6 +26,19 @@
 %token <value>NUMBER
 %token <string>OPERATOR
 %token <string>IF
+%token <string>ELSE
+%token <string>WHILE
+%token <string>FOR
+%token <string>RETURN
+%token <string>CONST
+%token <string>DO
+%token <string>STENCIL
+%token <string>INT
+%token <string>MAIN
+%token <string>PRINTF
+%token <string>PRINTI
+%token <string>BOOL_OPERATOR
+
 
 %type <codegen>expression
 %type <codegen>code_line
@@ -34,8 +47,8 @@
 %type <codegen>line
 
 
-%left '-'
-%left OPERATOR
+%left '-' '+'
+%left '*' '/'
 
 %start axiom
 
