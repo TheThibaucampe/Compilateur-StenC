@@ -25,9 +25,13 @@
 %token <string>IDENTIFIER
 %token <value>NUMBER
 %token <string>OPERATOR
+%token <string>IF
+
 %type <codegen>expression
+%type <codegen>code_line
 %type <codegen>statement
-%type <codegen>ligne
+%type <codegen>struct_control
+%type <codegen>line
 
 
 %left '-'
@@ -38,7 +42,7 @@
 %%
 
 axiom:
-    ligne
+    line
     {
       quadsFinal = $1.code;
       printf("Match :-) !\n");
@@ -46,17 +50,28 @@ axiom:
     }
 ;
 
-ligne:
-    '\n' ligne	{printf("retour chariot\n");}
-    | statement ';' ligne	{printf("ligne -> statement ; ligne\n");}
-    | '\n'	{printf("Epsilon ligne\n");}	//TODO demander a bastoul
-  ;
-
-
+line:
+    statement line	{}
+    | struct_control line	{}
+	//function line
+    | '\n'	{printf("Epsilon statement\n");}	//TODO demander a bastoul
+    | '\n' line	{printf("retour chariot\n");}
+   ;
 
 statement:
-    expression	{printf("statement -> expression\n");}
+    code_line ';'	{printf("statement -> code_line ; statement\n");}
   ;
+
+
+
+code_line:
+    expression	{printf("code_line -> expression\n");}
+	//TODO attribution
+  ;
+
+struct_control: 
+   IF	{printf("IF\n");}
+;
 
 expression:
     expression OPERATOR expression
@@ -116,6 +131,8 @@ expression:
       printf("expression -> NUMBER (%d)\n", $1);
     }
   ;
+
+
 
 %%
 
