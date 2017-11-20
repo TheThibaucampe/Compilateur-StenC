@@ -5,7 +5,7 @@
   #include <string.h>
 %}
 
-KEYWORD if"|"else"|"while"|"for"|"return"|"const"|"do"
+KEYWORD "if"|"else"|"while"|"for"|"return"|"const"|"do"
 TYPE "stencil"|"int"
 FUNCTION "main"|"printf"|"printi"
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
