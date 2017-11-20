@@ -1,6 +1,6 @@
 CC = gcc
 LEX = lex
-YACC = yacc -d
+YACC = yacc -d #--report=all
 CFLAGS = -O2 -Wall -Iinclude
 LDFLAGS = -ly -lfl -Iinclude
 EXEC = stenCil
