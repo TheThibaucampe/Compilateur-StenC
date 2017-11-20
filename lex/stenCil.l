@@ -11,7 +11,8 @@ FUNCTION "main"|"printf"|"printi"
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 NUMBER (("0"|"0x"|"0b")?[0-9]+)|([0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?[alLfF]?)
 STRING \"[^\"]*\"
-OPERATOR "+"|"-"|"*"|"/"|"$"|"="|"<"|">"|"<="|">="|"=="|"!="|"&&"
+OPERATOR "+"|"-"|"*"|"/"|"$"|"="
+BOOL_OPERATOR "<"|">"|"<="|">="|"=="|"!="|"&&"
 UNARY_POSTFIX_OPERATOR "++" | "--"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"||"|"#"|","|";"
 PREPROC ("#define "[a-zA-Z][0-9a-zA-Z_]*" "[0-9a-zA-Z_]+)|("#include "(\<[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\>)|(\"[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\"))
@@ -82,6 +83,8 @@ SPACES \n|\t|" "
 {STRING}		{yylval.string = strdup(yytext);}
 {OPERATOR}		{yylval.string = strdup(yytext);
 			return OPERATOR;}
+{BOOL_OPERATOR}		{yylval.string = strdup(yytext);
+			return BOOL_OPERATOR;}
 {PUNCTUATION}		{return yytext[0];}
 
 
