@@ -19,6 +19,7 @@ struct symbol{
 struct symbol* newtemp(struct symbol**);
 struct symbol* add(struct symbol**, char*, int);
 struct symbol* lookup(struct symbol*, char*);
+void print(struct symbol*);
 
 
 #endif
