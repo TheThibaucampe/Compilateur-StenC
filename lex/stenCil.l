@@ -81,8 +81,7 @@ SPACES \n|\t|" "
 {NUMBER}		{yylval.value = atoi(yytext);
 			return NUMBER;}
 {STRING}		{yylval.string = strdup(yytext);}
-{OPERATOR}		{yylval.string = strdup(yytext);
-			return OPERATOR;}
+{OPERATOR}		{return yytext[0];}
 {BOOL_OPERATOR}		{yylval.string = strdup(yytext);
 			return BOOL_OPERATOR;}
 {PUNCTUATION}		{return yytext[0];}
