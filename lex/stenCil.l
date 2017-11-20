@@ -15,7 +15,7 @@ UNARY_POSTFIX_OPERATOR "++" | "--"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"||"|"#"|","|";"
 PREPROC (\<[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\>)|(\"[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\")
 COMMENT ("//".*\n)|(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)
-SPACES \n|\t
+SPACES \n|\t|" "
 
 
 %%
@@ -30,6 +30,7 @@ SPACES \n|\t
 {OPERATOR}		{yylval.string = strdup(yytext);
 			return OPERATOR;}
 {PUNCTUATION}		{return yytext[0];}
+
 
 .            	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
