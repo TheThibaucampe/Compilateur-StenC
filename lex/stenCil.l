@@ -22,8 +22,8 @@ SPACES \n|\t|" "
 
 %%
 
-{COMMENT}			{return yytext[0];}
-{SPACES}      		{return yytext[0];}
+{COMMENT}			{}
+{SPACES}      		{}
 {KEYWORD}			{	if (strcmp("if", yytext) == 0)
 						{
 							yylval.string = strdup(yytext); return IF;
