@@ -7,14 +7,13 @@
 
 struct quadlist {
 	struct quads* ptr;
-	struct quadlist* GOTO; //Pointeur vers un quadlist (de truelist ou falselist)
+	struct quads* GOTO;
 	struct quadlist* nextlist;
 };
-typedef struct quadlist quadlist;
 
-quadlist* newlist(struct quads*);
-quadlist* concat(quadlist*, quadlist*);
-void complete(quadlist*, quadlist*);
+struct quadlist* newlist(struct quads*);
+struct quadlist* concat(struct quadlist*, struct quadlist*);
+void complete(struct quadlist*, struct quads*);
 //Void print(quadlist*);
 
 
