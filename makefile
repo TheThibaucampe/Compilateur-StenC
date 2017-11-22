@@ -2,8 +2,9 @@ CC = gcc
 LEX = lex
 YACC = yacc -d #--report=all
 CFLAGS = -O2 -Wall -Iinclude
-ifeq ($(OS),Darwin)
-	LDFLAGS = -ly -ll -Iinclude
+UNAME_S = $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    LDFLAGS = -ly -ll -Iinclude
 else
 	LDFLAGS = -ly -lfl -Iinclude
 endif
