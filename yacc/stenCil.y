@@ -78,8 +78,9 @@
 %type <codegen>list_var
 
 
-%left MINUS PLUS
-%left MUL DIV
+%left MINUS PLUS INCR DECR MUL DIV STENCIL_OP
+%left STRICT_LESS STRICT_MORE LESS MORE EQUAL NOTEQUAL AND OR NOT
+%right ASSIGN 
 
 %start axiom
 
@@ -329,7 +330,8 @@ expression:
 
     }
 
-  | INCR expression
+    //Crée des shift/reduce
+  /*| INCR expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -355,7 +357,7 @@ expression:
       $$.code = quadsConcat(NULL,$2.code,newQuads);
       printf("expression -> -- expression\n");
 
-    }
+    }*/
 
   | expression INCR
     {
