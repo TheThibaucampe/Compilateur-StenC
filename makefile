@@ -1,6 +1,6 @@
 CC = gcc
 LEX = lex
-YACC = yacc -d #--report=all
+YACC = yacc -d --report=all
 CFLAGS = -O2 -Wall -Iinclude
 UNAME_S = $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -10,7 +10,7 @@ else
 endif
 EXEC = stenCil
 
-stenCil: obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
+stenCil: obj/quadlist.o obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
 	$(CC) -g $^ -o stenCil  $(LDFLAGS)
 
 src/y.tab.c: yacc/$(EXEC).y
