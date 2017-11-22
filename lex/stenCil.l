@@ -7,6 +7,7 @@
 
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 NUMBER (("0"|"0x"|"0b")?[0-9]+)|([0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?[alLfF]?)
+OPERATOR "+"|"-"|"*"|"/"|"="
 BOOL_OPERATOR "<"|">"|"<="|">="|"=="|"!="|"&&"|"!"|"||"
 UNARY_POSTFIX_OPERATOR "++"|"--"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"#"|","|";"
@@ -18,27 +19,28 @@ SPACES \n|\t|" "
 
 %%
 
-{COMMENT}		{}
-{SPACES}      	{}
-"if"			{return IF;}	
-"else"			{return ELSE;}
-"while"			{return WHILE;}
-"for"			{return FOR;}
-"return"		{return RETURN;}
-"const"			{return CONST;}
-"stencil"		{return STENCIL;}
-"int"			{return INT;}
-"main"			{return MAIN;}
-"printf"		{return PRINTF;}
-"printi"		{return PRINTI;}
-{BOOL_OPERATOR}	{yylval.string = strdup(yytext);}
-{UNARY_POSTFIX_OPERATOR} {yylval.string = strdup(yytext);}
-{PUNCTUATION}	{yylval.string = strdup(yytext);}
+{COMMENT}			{}
+{SPACES}      			{}
+"if"				{return IF;}	
+"else"				{return ELSE;}
+"while"				{return WHILE;}
+"for"				{return FOR;}
+"return"			{return RETURN;}
+"const"				{return CONST;}
+"stencil"			{return STENCIL;}
+"int"				{return INT;}
+"main"				{return MAIN;}
+"printf"			{return PRINTF;}
+"printi"			{return PRINTI;}
+{BOOL_OPERATOR}			{yylval.string = strdup(yytext);}
+{OPERATOR}			{return yytext[0];}
+{UNARY_POSTFIX_OPERATOR}	{yylval.string = strdup(yytext);}
+{PUNCTUATION}			{return yytext[0];}
 
-{IDENTIFIER}	{yylval.string = strdup(yytext); return IDENTIFIER;}
-{NUMBER}		{yylval.value = atoi(yytext); return NUMBER;}
-{STRING}		{yylval.string = strdup(yytext);}
+{IDENTIFIER}			{yylval.string = strdup(yytext); return IDENTIFIER;}
+{NUMBER}			{yylval.value = atoi(yytext); return NUMBER;}
+{STRING}			{yylval.string = strdup(yytext);}
 
-.            	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
+.           		 	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
 %%
