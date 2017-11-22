@@ -331,7 +331,7 @@ expression:
     }
 
     //Crée des shift/reduce
-  /*| INCR expression
+  | INCR expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -357,7 +357,7 @@ expression:
       $$.code = quadsConcat(NULL,$2.code,newQuads);
       printf("expression -> -- expression\n");
 
-    }*/
+    }
 
   | expression INCR
     {
