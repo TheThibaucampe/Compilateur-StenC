@@ -50,6 +50,9 @@
 %type <codegen>declaration
 %type <codegen>var
 %type <codegen>list_var
+%type <codegen>bloc
+
+
 
 %left '-' '+' '*' '/' '$' "++" "--" '<' '>' "<=" ">=" "==" "!=" "&&" '!' "||"
 %right '=' 
@@ -90,18 +93,13 @@ statement:
       printf("statement -> code_line ;\n");
     }
 
-    //Issu du TP3
-    | IDENTIFIER '=' expression
-    {
-      //TODO
-    }
-
-    | WHILE condition '{' line '}'
+    | WHILE condition bloc
     {
       //Issu du cours de Compil
-      complete($2.truelist, $4.code);
+      complete($2.truelist, $3.code);
       //find lasts quads
-      struct quads* ptr1 = $2.code; struct quads* ptr2 = $4.code;
+      struct quads* ptr1 = $2.code;
+      struct quads* ptr2 = $3.code;
       while (ptr1->suivant != NULL && ptr2->suivant != NULL) //Oui, je sais, c'est une optimisation
       {
         ptr1 = ptr1->suivant; ptr2 = ptr2->suivant;
@@ -117,12 +115,12 @@ statement:
 
     }
 
-    | IF condition '{' line '}'
+    | IF condition bloc
     {
       //Idem
     }
 
-    | IF condition '{' line '}' ELSE '{' line '}'
+    | IF condition bloc ELSE bloc
     {
       //Idem
     }
@@ -202,7 +200,7 @@ var: //Redondant avec statement ?
      $$.code = $3.code;		//XXX code d'attribution
 
    }
-
+;
 
 
 attribution:	//utilisable que pour les var de type int
@@ -227,6 +225,15 @@ attribution:	//utilisable que pour les var de type int
      printf("attribution -> ID = expression\n");
    }
   ;
+
+
+
+bloc:
+   '{' line '}'
+   {
+     printf("bloc -> { line }\n");
+   }
+
 
 
 expression:
@@ -322,7 +329,7 @@ expression:
       struct symbol* arg1 = newtemp(&tds);
       arg1->valeur = -1;
       struct symbol* arg2 = lookup(tds,$2.result->nom);
-      struct quads* newQuads= quadsGen("+",arg1,arg2,$$.result);
+      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -350,7 +357,7 @@ expression:
       struct symbol* arg1 = newtemp(&tds);
       arg1->valeur = -1;
       struct symbol* arg2 = lookup(tds,$1.result->nom);
-      struct quads* newQuads= quadsGen("+",arg1,arg2,$$.result);
+      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
