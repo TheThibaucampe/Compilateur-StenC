@@ -25,19 +25,19 @@
 %token <string>IDENTIFIER
 %token <value>NUMBER
 %token <string>OPERATOR
-%token <string>IF
-%token <string>ELSE
-%token <string>WHILE
-%token <string>FOR
-%token <string>RETURN
-%token <string>CONST
-%token <string>DO
-%token <string>STENCIL
-%token <string>INT
-%token <string>MAIN
-%token <string>PRINTF
-%token <string>PRINTI
-%token <string>BOOL_OPERATOR
+%token IF
+%token ELSE
+%token WHILE
+%token FOR
+%token RETURN
+%token CONST
+%token DO
+%token STENCIL
+%token INT
+%token MAIN
+%token PRINTF
+%token PRINTI
+%token BOOL_OPERATOR
 
 
 %type <codegen>expression
@@ -45,6 +45,10 @@
 %type <codegen>statement
 %type <codegen>struct_control
 %type <codegen>line
+%type <codegen>attribution
+%type <codegen>declaration
+%type <codegen>var
+%type <codegen>list_var
 
 
 %left '-' '+'
@@ -64,31 +68,19 @@ axiom:
 ;
 
 line:
-    statement line
+    line statement
     {
       $$.code = quadsConcat($1.code,$2.code,NULL);
+      //XXX Code?
       printf("line -> statement line\n");
     }
 
-    | struct_control line
+    | statement
     {
-      $$.code = quadsConcat($1.code,$2.code,NULL);
-      printf("line -> struct_control line\n");
+      $$ = $1;
+      printf("line -> statement\n");
     }
 
-	//function line
-
-
-    | '\n'
-      {
-        printf("\\n\n");
-      }	//TODO demander a bastoul
-
-    | '\n' line
-      {
-        $$=$2;
-        printf("\\n line\n");
-      }
    ;
 
 statement:
@@ -97,22 +89,122 @@ statement:
       $$=$1;
       printf("statement -> code_line ;\n");
     }
+
+    | struct_control
+    {
+      $$ = $1;
+      printf("line -> struct_control line\n");
+    }
+	//function
+
   ;
 
 
 
 code_line:
-    expression
+    attribution
     {
       $$=$1;
-      printf("code_line -> expression\n");
+      printf("code_ligne -> attribution\n");
     }
-	//TODO attribution
+
+    | declaration
+    {
+       $$ = $1;
+       printf("code_ligne -> declaration\n");
+    }
   ;
 
 struct_control: 
-   IF	{printf("IF\n");}
+   IF	{printf("IF\n");}	//TODO
 ;
+
+
+declaration:
+   INT list_var
+   {
+     $$=$2;
+     printf("declaration -> INT list_var\n");
+   }
+	//pour stencil
+   ;
+
+
+list_var:
+   var ',' list_var
+   {
+     $$.code = quadsConcat($1.code,$3.code,NULL);
+     //XXX result?
+     printf("list_var -> list_var var\n");
+   }
+
+   | var
+   {
+     $$=$1;
+     printf("list_var -> var\n");
+   }
+
+  ;
+
+var:
+   IDENTIFIER
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp != NULL)
+     {
+       printf("Redéclaration de %s\n",$1);
+       return -1;
+     }
+
+
+     //XXX stocker type?
+     $$.result = add(&tds, $1, false);
+     printf("var ->ID\n");
+     //XXX code
+   }
+
+   | IDENTIFIER '=' expression
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp != NULL)
+     {
+       printf("Redéclaration de %s\n",$1);
+       return -1;
+     }
+
+
+     $$.result = add(&tds,$1,false);
+     $$.code = $3.code;		//XXX code d'attribution
+
+   }
+
+
+
+attribution:	//utilisable que pour les var de type int
+   IDENTIFIER '=' expression
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp == NULL)
+     {
+       printf("première utilisation de %s sans déclaration\n",$1);
+       return -1;
+     }
+
+     if(tmp->constante == true)
+     {
+       printf("Tentative de modification d'une constante\n");
+       return -1;
+     }
+
+     $$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
+     $$.code = $3.code;		//XXX code d'attribution
+     printf("attribution -> ID = expression\n");
+   }
+  ;
+
 
 expression:
     expression '+' expression
@@ -193,7 +285,8 @@ expression:
 
       if($$.result == NULL)
       {
-	$$.result = add(&tds,$1,false);
+        printf("utilisation de %s sans declaration\n",$1);
+        return -1;
       }
 
 
