@@ -55,11 +55,11 @@ SPACES \n|\t|" "
 					}
 {TYPE}				{	if (strcmp("stencil", yytext) == 0)
 						{
-							yylval.string = strdup(yytext); return STENCIL;
+							return STENCIL;
 						} else
 						if (strcmp("int", yytext) == 0)
 						{
-							yylval.string = strdup(yytext); return INT;
+							return INT;
 						}
 					}
 {FUNCTION}				{	if (strcmp("main", yytext) == 0)
