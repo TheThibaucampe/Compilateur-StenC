@@ -40,32 +40,6 @@
 %token MAIN
 %token PRINTF
 %token PRINTI
-%token INCR
-%token DECR
-%token MINUS
-%token MUL
-%token DIV
-%token STENCIL_OP
-%token ASSIGN
-%token NOT
-%token STRICT_LESS
-%token STRICT_MORE
-%token LESS
-%token MORE
-%token EQUAL
-%token NOTEQUAL
-%token AND
-%token OR
-%token CROCHET_G
-%token CROCHET_D
-%token PARENTHESE_G
-%token PARENTHESE_D
-%token ACCOLADE_G
-%token ACCOLADE_D
-%token DIEZE
-%token VIRGULE
-%token POINT_VIRGULE
-
 
 %type <codegen>condition
 %type <codegen>expression
@@ -77,10 +51,8 @@
 %type <codegen>var
 %type <codegen>list_var
 
-
-%left MINUS PLUS INCR DECR MUL DIV STENCIL_OP
-%left STRICT_LESS STRICT_MORE LESS MORE EQUAL NOTEQUAL AND OR NOT
-%right ASSIGN 
+%left '-' '+' '*' '/' '$' "++" "--" '<' '>' "<=" ">=" "==" "!=" "&&" '!' "||"
+%right '=' 
 
 %start axiom
 
@@ -112,19 +84,19 @@ line:
 
 
 statement:
-    code_line POINT_VIRGULE
+    code_line ';'
     {
       $$=$1;
       printf("statement -> code_line ;\n");
     }
 
     //Issu du TP3
-    | IDENTIFIER ASSIGN expression
+    | IDENTIFIER '=' expression
     {
       //TODO
     }
 
-    | WHILE condition ACCOLADE_G line ACCOLADE_D
+    | WHILE condition '{' line '}'
     {
       //Issu du cours de Compil
       complete($2.truelist, $4.code);
@@ -145,12 +117,12 @@ statement:
 
     }
 
-    | IF condition ACCOLADE_G line ACCOLADE_D
+    | IF condition '{' line '}'
     {
       //Idem
     }
 
-    | IF condition ACCOLADE_G line ACCOLADE_D ELSE ACCOLADE_G line ACCOLADE_D
+    | IF condition '{' line '}' ELSE '{' line '}'
     {
       //Idem
     }
@@ -182,7 +154,7 @@ declaration:
 
 
 list_var:
-   var VIRGULE list_var
+   var ',' list_var
    {
      $$.code = quadsConcat($1.code,$3.code,NULL);
      //XXX result?
@@ -215,7 +187,7 @@ var: //Redondant avec statement ?
      //XXX code
    }
 
-   | IDENTIFIER ASSIGN expression
+   | IDENTIFIER '=' expression
    {
      struct symbol* tmp = lookup(tds,$1);
 
@@ -234,7 +206,7 @@ var: //Redondant avec statement ?
 
 
 attribution:	//utilisable que pour les var de type int
-   IDENTIFIER ASSIGN expression
+   IDENTIFIER '=' expression
    {
      struct symbol* tmp = lookup(tds,$1);
 
@@ -258,7 +230,7 @@ attribution:	//utilisable que pour les var de type int
 
 
 expression:
-    expression PLUS expression
+    expression '+' expression
     { 
       $$.result = newtemp(&tds);
       struct symbol* arg1 = lookup(tds,$1.result->nom);
@@ -270,7 +242,7 @@ expression:
       printf("expression -> expression + expression\n");
     }
 
-  | expression MINUS expression
+  | expression '-' expression
     { 
       $$.result = newtemp(&tds);
       struct symbol* arg1 = lookup(tds,$1.result->nom);
@@ -282,7 +254,7 @@ expression:
       printf("expression -> expression - expression\n");
     }
 
-  | expression DIV expression
+  | expression '/' expression
     { 
       $$.result = newtemp(&tds);
       struct symbol* arg1 = lookup(tds,$1.result->nom);
@@ -295,7 +267,7 @@ expression:
     }
 
 
-   | expression MUL expression
+   | expression '*' expression
     { 
       $$.result = newtemp(&tds);
       struct symbol* arg1 = lookup(tds,$1.result->nom);
@@ -309,14 +281,14 @@ expression:
 
 
 
-  | PARENTHESE_G expression PARENTHESE_D
+  | '(' expression ')'
     {
       $$=$2;
       printf("expression -> ( expression )\n");
     }
 
 
-  | MINUS expression
+  | '-' expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -330,8 +302,7 @@ expression:
 
     }
 
-    //Crée des shift/reduce
-  | INCR expression
+  | "++" expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -345,7 +316,7 @@ expression:
 
     }
 
-  | DECR expression
+  | "--" expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -359,7 +330,7 @@ expression:
 
     }
 
-  | expression INCR
+  | expression "++"
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -373,7 +344,7 @@ expression:
 
     }
 
-  | expression DECR
+  | expression "--"
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -414,7 +385,7 @@ expression:
   ;
 
 condition:  //condition booléenne
-    IDENTIFIER EQUAL NUMBER
+    IDENTIFIER "==" NUMBER
     {
       $$.result = newtemp(&tds);
       struct symbol* tmp = lookup(tds,$1);
@@ -427,7 +398,7 @@ condition:  //condition booléenne
       $$.result->valeur = (tmp->valeur == $3);
     }
 
-  | IDENTIFIER NOTEQUAL NUMBER
+  | IDENTIFIER "!=" NUMBER
     {
       $$.result = newtemp(&tds);
       struct symbol* tmp = lookup(tds,$1);
@@ -452,7 +423,7 @@ condition:  //condition booléenne
       $$.result->valeur = false;
     }
 
-  | condition OR condition
+  | condition "||" condition
     {
       complete($1.falselist, $3.code);
       $$.code = quadsConcat($1.code, $3.code, NULL);
@@ -460,7 +431,7 @@ condition:  //condition booléenne
       $$.falselist = $1.falselist;
     }
 
-  | condition AND condition
+  | condition "&&" condition
     {
       complete($1.truelist, $3.code);
       $$.code = quadsConcat($1.code, $3.code, NULL);
@@ -468,7 +439,7 @@ condition:  //condition booléenne
       $$.truelist = $1.truelist;
     }
 
-  | NOT condition
+  | '!' condition
     {
       $$.code = $2.code;
       $$.falselist = $2.falselist;
