@@ -24,16 +24,12 @@ struct quads* quadsConcat(struct quads* quads1, struct quads* quads2, struct qua
 		{
 			curseur = curseur->suivant;
 		}
-
 		curseur->suivant = quads2;
-
 	}
 	else
 	{
 		retour = quads2;
 	}
-
-
 
 	if(quads2 != NULL)
 	{
