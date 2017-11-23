@@ -20,7 +20,7 @@ SPACES \n|\t|" "
 %%
 
 {COMMENT}			{}
-{SPACES}      			{}
+{SPACES}      		{}
 "if"				{return IF;}	
 "else"				{return ELSE;}
 "while"				{return WHILE;}
@@ -33,14 +33,22 @@ SPACES \n|\t|" "
 "printf"			{return PRINTF;}
 "printi"			{return PRINTI;}
 "=="				{return EQUAL;}
+"<="				{return LESS;}
+">="				{return MORE;}
+"!="				{return NOTEQUAL;}
+"&&"				{return AND;}
+"!"|">"|"<"			{return yytext[0];}
+"||"				{return OR;}
+"++"				{return INCR;}
+"--"				{return DECR;}
+					
 {OPERATOR}			{return yytext[0];}
-{UNARY_POSTFIX_OPERATOR}	{yylval.string = strdup(yytext);}
-{PUNCTUATION}			{return yytext[0];}
+{PUNCTUATION}		{return yytext[0];}
 
-{IDENTIFIER}			{yylval.string = strdup(yytext); return IDENTIFIER;}
+{IDENTIFIER}		{yylval.string = strdup(yytext); return IDENTIFIER;}
 {NUMBER}			{yylval.value = atoi(yytext); return NUMBER;}
 {STRING}			{yylval.string = strdup(yytext);}
 
-.           		 	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
+.           		 { printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
 %%

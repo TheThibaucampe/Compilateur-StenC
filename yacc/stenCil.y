@@ -44,6 +44,13 @@
 %token PRINTF
 %token PRINTI
 %token EQUAL
+%token LESS
+%token MORE
+%token NOTEQUAL
+%token AND
+%token OR
+%token INCR
+%token DECR
 
 %type <codegen>condition
 %type <codegen>expression
@@ -58,8 +65,14 @@
 %type <value>tag
 
 
-
-%left '-' '+' '*' '/' '$' "++" "--" '<' '>' "<=" ">=" EQUAL "!=" "&&" '!' "||"
+%left '(' ')'
+%left '!' INCR DECR
+%left '*' '/'
+%left '-' '+' '$'
+%left '<' '>' LESS MORE
+%left EQUAL NOTEQUAL
+%left AND
+%left OR
 %right '=' 
 
 %start axiom
@@ -325,7 +338,7 @@ expression:
 
     }
 
-  | "++" expression
+  | INCR expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -339,7 +352,7 @@ expression:
 
     }
 
-  | "--" expression
+  | DECR expression
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -353,8 +366,8 @@ expression:
 
     }
 
-  | expression "++"
-    {
+  | expression INCR
+      {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
       arg1->valeur = 1;
@@ -367,7 +380,7 @@ expression:
 
     }
 
-  | expression "--"
+  | expression DECR
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
@@ -436,7 +449,7 @@ condition:  //condition booléenne
       $$.result->valeur = false;
     }
 
-  | condition "||" tag condition
+  | condition OR tag condition
     {
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $3;
@@ -448,7 +461,7 @@ condition:  //condition booléenne
       printf("condition -> condition || tag condition\n");
     }
 
-  | condition "&&" tag condition
+  | condition AND tag condition
     {
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $3;
