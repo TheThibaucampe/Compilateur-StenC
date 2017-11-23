@@ -32,7 +32,7 @@ SPACES \n|\t|" "
 "main"				{return MAIN;}
 "printf"			{return PRINTF;}
 "printi"			{return PRINTI;}
-{BOOL_OPERATOR}			{yylval.string = strdup(yytext);}
+"=="				{return EQUAL;}
 {OPERATOR}			{return yytext[0];}
 {UNARY_POSTFIX_OPERATOR}	{yylval.string = strdup(yytext);}
 {PUNCTUATION}			{return yytext[0];}
