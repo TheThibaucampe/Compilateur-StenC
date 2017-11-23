@@ -3,13 +3,16 @@
   #include <stdlib.h>
   #include "tds.h"
   #include "quads.h"
-  #include "quadlist.h"
+  #include "list_quads.h"
 
   void yyerror(char*);
   int yylex();
 
   struct symbol* tds = NULL;
   struct quads* quadsFinal = NULL;
+
+  int nextquad = 1;
+
 %}
 
 %union{
@@ -19,8 +22,8 @@
 	struct{
 		struct symbol* result;
 		struct quads* code;
-    struct quadlist* truelist;
-    struct quadlist* falselist;
+		struct list_quads* truelist;
+		struct list_quads* falselist;
 	} codegen;
 }
 
@@ -40,6 +43,7 @@
 %token MAIN
 %token PRINTF
 %token PRINTI
+%token EQUAL
 
 %type <codegen>condition
 %type <codegen>expression
@@ -51,10 +55,11 @@
 %type <codegen>var
 %type <codegen>list_var
 %type <codegen>bloc
+%type <value>tag
 
 
 
-%left '-' '+' '*' '/' '$' "++" "--" '<' '>' "<=" ">=" "==" "!=" "&&" '!' "||"
+%left '-' '+' '*' '/' '$' "++" "--" '<' '>' "<=" ">=" EQUAL "!=" "&&" '!' "||"
 %right '=' 
 
 %start axiom
@@ -83,6 +88,7 @@ line:
       $$ = $1;
       printf("line -> statement\n");
     }
+
    ;
 
 
@@ -93,13 +99,22 @@ statement:
       printf("statement -> code_line ;\n");
     }
 
-    | WHILE condition bloc
+    | WHILE condition tag
     {
-      //Issu du cours de Compil
-      complete($2.truelist, $3.code);
-      //find lasts quads
+      struct symbol* tmp = newtemp(&tds);
+      tmp->valeur = $3;
+      complete_list_quads($2.truelist, tmp);
+
+      tmp = newtemp(&tds);
+      tmp->valeur = $3;
+      complete_list_quads($2.falselist, tmp);
+
+
+
+/*
       struct quads* ptr1 = $2.code;
       struct quads* ptr2 = $3.code;
+
       while (ptr1->suivant != NULL && ptr2->suivant != NULL) //Oui, je sais, c'est une optimisation
       {
         ptr1 = ptr1->suivant; ptr2 = ptr2->suivant;
@@ -111,7 +126,7 @@ statement:
       {
         while (ptr1->suivant != NULL) {ptr1 = ptr1->suivant;}
       }
-      /*Problème de cohérence entre le cours et le code; A revoir*/
+      Problème de cohérence entre le cours et le code; A revoir*/
 
     }
 
@@ -327,9 +342,9 @@ expression:
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = -1;
+      arg1->valeur = 1;
       struct symbol* arg2 = lookup(tds,$2.result->nom);
-      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
+      struct quads* newQuads= quadsGen("-",arg2,arg1,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -355,9 +370,9 @@ expression:
     {
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = -1;
+      arg1->valeur = 1;
       struct symbol* arg2 = lookup(tds,$1.result->nom);
-      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
+      struct quads* newQuads= quadsGen("-",arg2,arg1,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -392,31 +407,21 @@ expression:
   ;
 
 condition:  //condition booléenne
-    IDENTIFIER "==" NUMBER
+    expression EQUAL expression
     {
-      $$.result = newtemp(&tds);
-      struct symbol* tmp = lookup(tds,$1);
-      if(tmp != NULL)
-      {
-        printf("Redéclaration de %s\n",$1);
-        return -1;
-      }
+      struct quads* newQuads = quadsGen("==",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
 
-      $$.result->valeur = (tmp->valeur == $3);
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression == expression\n");
     }
 
-  | IDENTIFIER "!=" NUMBER
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* tmp = lookup(tds,$1);
-      if(tmp != NULL)
-      {
-        printf("Redéclaration de %s\n",$1);
-        return -1;
-      }
-
-      $$.result->valeur = (tmp->valeur != $3);
-    }
 
   | TRUE
     {
@@ -430,31 +435,54 @@ condition:  //condition booléenne
       $$.result->valeur = false;
     }
 
-  | condition "||" condition
+  | condition "||" tag condition
     {
-      complete($1.falselist, $3.code);
-      $$.code = quadsConcat($1.code, $3.code, NULL);
-      $$.truelist = concat($1.truelist, $3.truelist);
-      $$.falselist = $1.falselist;
+      struct symbol* tmp = newtemp(&tds);
+      tmp->valeur = $3;
+      complete_list_quads($1.falselist,tmp);
+      $$.code = quadsConcat($1.code, $4.code, NULL);
+      $$.truelist = concat_list_quads($1.truelist, $4.truelist);
+      $$.falselist = $4.falselist;
+
+      printf("condition -> condition || tag condition\n");
     }
 
-  | condition "&&" condition
+  | condition "&&" tag condition
     {
-      complete($1.truelist, $3.code);
-      $$.code = quadsConcat($1.code, $3.code, NULL);
-      $$.falselist = concat($1.falselist, $3.falselist);
-      $$.truelist = $1.truelist;
+      struct symbol* tmp = newtemp(&tds);
+      tmp->valeur = $3;
+      complete_list_quads($1.truelist, tmp);
+      $$.code = quadsConcat($1.code, $4.code, NULL);
+      $$.falselist = concat_list_quads($1.falselist, $4.falselist);
+      $$.truelist = $4.truelist;
+
+      printf("condition -> condition && tag condition\n");
     }
 
   | '!' condition
     {
       $$.code = $2.code;
-      $$.falselist = $2.falselist;
-      $$.truelist = $2.truelist;
+      $$.falselist = $2.truelist;
+      $$.truelist = $2.falselist;
+
+      printf("condition -> ! condition\n");
     }
-  //| OPAR condition CPAR {}
+
+
+
+
+  | '(' condition ')' {$$ = $2;
+
+      printf("condition -> condition && tag condition\n");
+     }
+
   
   ;
+
+tag:
+    {$$ = nextquad;
+	printf("Tag\n");
+}
 
 %%
 
