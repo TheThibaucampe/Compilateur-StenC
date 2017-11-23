@@ -9,6 +9,8 @@ struct quads* quadsGen(char* op, struct symbol* arg1, struct symbol* arg2, struc
 	new_quads->res = res;
 	new_quads->suivant = NULL;
 
+	nextquad++;
+
 	return new_quads;
 }
 
