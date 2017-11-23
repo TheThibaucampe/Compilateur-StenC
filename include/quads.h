@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern int nextquad;
+
 struct quads {
 	char* op;
 	struct symbol* arg1;
