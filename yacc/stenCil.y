@@ -101,6 +101,7 @@ statement:
 
     | WHILE condition tag
     {
+
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $3;
       complete_list_quads($2.truelist, tmp);
@@ -109,7 +110,7 @@ statement:
       tmp->valeur = $3;
       complete_list_quads($2.falselist, tmp);
 
-
+      $$ = $2;
 
 /*
       struct quads* ptr1 = $2.code;
