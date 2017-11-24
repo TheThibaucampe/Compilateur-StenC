@@ -10,7 +10,7 @@ else
 endif
 EXEC = stenCil
 
-stenCil: obj/quadlist.o obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
+stenCil: obj/list_quads.o obj/quads.o obj/tds.o src/y.tab.c src/lex.yy.c
 	$(CC) -g $^ -o stenCil  $(LDFLAGS)
 
 src/y.tab.c: yacc/$(EXEC).y
