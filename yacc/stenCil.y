@@ -112,46 +112,83 @@ statement:
       printf("statement -> code_line ;\n");
     }
 
-    | WHILE condition tag
+    | WHILE tag condition tag bloc
     {
+      //Begin
+      
+      //Concaténation du code de condition avec le code destination
+      $$.code = $3.code;
 
+      //Concaténation de la truelist de la condition
       struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $3;
-      complete_list_quads($2.truelist, tmp);
+      tmp->valeur = $4;
+      $$.truelist = complete_list_quads($3.truelist, tmp);
+     
+      //Concaténation du code bloc avec le code destination
+      $$.code = quadsConcat($$.code, $5.code, NULL);
 
+      //Ajout du goto begin
       tmp = newtemp(&tds);
-      tmp->valeur = $3;
-      complete_list_quads($2.falselist, tmp);
+      tmp->valeur = $2;
+      struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
+      $$.code = quadsConcat($$.code, newQuads, NULL);
 
-      $$ = $2;
-
-/*
-      struct quads* ptr1 = $2.code;
-      struct quads* ptr2 = $3.code;
-
-      while (ptr1->suivant != NULL && ptr2->suivant != NULL) //Oui, je sais, c'est une optimisation
-      {
-        ptr1 = ptr1->suivant; ptr2 = ptr2->suivant;
-      }
-      if (ptr1->suivant == NULL)
-      {
-        while (ptr2->suivant != NULL) {ptr2 = ptr2->suivant;}
-      } else
-      {
-        while (ptr1->suivant != NULL) {ptr1 = ptr1->suivant;}
-      }
-      Problème de cohérence entre le cours et le code; A revoir*/
-
+      //Concaténation de la falselist de la condition
+      tmp = newtemp(&tds);
+      tmp->valeur = nextquad;
+      $$.falselist = complete_list_quads($3.falselist, tmp);
     }
 
     | IF condition bloc
     {
-      //Idem
+ 
+      //Concaténation du code de condition avec le code destination
+      struct quads* ptr = $$.code;
+      while (ptr->suivant != NULL) ptr = ptr->suivant;
+      quadsConcat(ptr, $2.code, NULL);
+
+      //Concaténation de la truelist de la condition
+      //...
+     
+      //Concaténation du code bloc avec le code destination
+      while (ptr->suivant != NULL) ptr = ptr->suivant;
+      quadsConcat(ptr, $3.code, NULL);
+
+      //Concaténation de la falselist de la condition
+      //...
+
+      //Concaténation du nextlist du bloc
+      //
+
     }
 
     | IF condition bloc ELSE bloc
     {
-      //Idem
+      //Concaténation du code de condition avec le code destination
+      struct quads* ptr = $$.code;
+      while (ptr->suivant != NULL) ptr = ptr->suivant;
+      quadsConcat(ptr, $2.code, NULL);
+
+      //Concaténation de la truelist
+      //...
+     
+      //Concaténation du code bloc avec le code destination
+      while (ptr->suivant != NULL) ptr = ptr->suivant;
+      quadsConcat(ptr, $3.code, NULL);
+
+
+
+      //Concaténation de la falselist
+      //...
+
+      //Concaténation du deuxième bloc
+      while (ptr->suivant != NULL) ptr = ptr->suivant;
+      quadsConcat(ptr, $5.code, NULL);
+
+      //Ajout du goto nextlist du bloc 2
+      //...
+
+
     }
 	//function
   ;
@@ -249,7 +286,7 @@ attribution:	//utilisable que pour les var de type int
        return -1;
      }
 
-     $$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
+     //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
      $$.code = $3.code;		//XXX code d'attribution
      printf("attribution -> ID = expression\n");
    }
@@ -260,6 +297,7 @@ attribution:	//utilisable que pour les var de type int
 bloc:
    '{' line '}'
    {
+      $$ = $2;
      printf("bloc -> { line }\n");
    }
 
@@ -487,7 +525,7 @@ condition:  //condition booléenne
 
   | '(' condition ')' {$$ = $2;
 
-      printf("condition -> condition && tag condition\n");
+      printf("condition -> (condition)\n");
      }
 
   
