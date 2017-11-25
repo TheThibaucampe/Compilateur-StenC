@@ -263,7 +263,8 @@ var: //Redondant avec statement ?
 
 
      $$.result = add(&tds,$1,false);
-     $$.code = $3.code;		//XXX code d'attribution
+     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
+     $$.code = quadsConcat($3.code,NULL,newQuads);
 
    }
 ;
@@ -287,7 +288,8 @@ attribution:	//utilisable que pour les var de type int
      }
 
      //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
-     $$.code = $3.code;		//XXX code d'attribution
+     struct quads* newQuads = quadsGen("move",$3.result,NULL,tmp);
+     $$.code = quadsConcat($3.code,NULL,newQuads);
      printf("attribution -> ID = expression\n");
    }
   ;
@@ -453,7 +455,7 @@ expression:
       $$.result->valeur = $1;
 
 
-      $$.code = NULL;
+      $$.code = NULL;	//TODO load imediate
       printf("expression -> NUMBER (%d)\n", $1);
     }
   ;

@@ -63,12 +63,15 @@ void quadsPrint(struct quads* quads)
 
 	while(curseur != NULL)
 	{
-		if(strcmp(curseur->op,"goto") != 0)
-		printf("%s %s %s %s\n",curseur->res->nom,curseur->arg1->nom, curseur->op, curseur->arg2->nom);
+		if(strcmp(curseur->op,"goto") == 0)
+		printf("%s %s\n",curseur->op,curseur->res->nom);
+
+		else if(strcmp(curseur->op,"move") == 0)
+		printf("%s %s %s\n",curseur->op, curseur->res->nom,curseur->arg1->nom);
 
 		else
 		
-		printf("%s %s\n",curseur->op,curseur->res->nom);
+		printf("%s %s %s %s\n",curseur->res->nom,curseur->arg1->nom, curseur->op, curseur->arg2->nom);
 		curseur = curseur->suivant;
 	}
 }
