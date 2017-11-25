@@ -116,22 +116,17 @@ statement:
     {
       //Begin
       
-      //Concaténation du code de condition avec le code destination
-      $$.code = $3.code;
 
       //Concaténation de la truelist de la condition
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $4;
       $$.truelist = complete_list_quads($3.truelist, tmp);
      
-      //Concaténation du code bloc avec le code destination
-      $$.code = quadsConcat($$.code, $5.code, NULL);
-
       //Ajout du goto begin
       tmp = newtemp(&tds);
       tmp->valeur = $2;
       struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
-      $$.code = quadsConcat($$.code, newQuads, NULL);
+      $$.code = quadsConcat($3.code,$5.code ,newQuads);
 
       //Concaténation de la falselist de la condition
       tmp = newtemp(&tds);
