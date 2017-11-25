@@ -44,8 +44,8 @@
 %token PRINTF
 %token PRINTI
 %token EQUAL
-%token LESS
-%token MORE
+%token LOWEREQ
+%token GREATEREQ
 %token NOTEQUAL
 %token AND
 %token OR
@@ -447,6 +447,88 @@ condition:  //condition booléenne
 
       printf("condition -> expression == expression\n");
     }
+
+
+    | expression NOTEQUAL expression
+    {
+      struct quads* newQuads = quadsGen("!=",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
+
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression != expression\n");
+    }
+
+
+    | expression GREATEREQ expression
+    {
+      struct quads* newQuads = quadsGen(">=",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
+
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression >= expression\n");
+    }
+
+
+    | expression '>' expression
+    {
+      struct quads* newQuads = quadsGen(">",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
+
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression > expression\n");
+    }
+
+
+    | expression LOWEREQ expression
+    {
+      struct quads* newQuads = quadsGen("<=",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
+
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression <= expression\n");
+    }
+
+
+
+    | expression '<' expression
+    {
+      struct quads* newQuads = quadsGen("<",$1.result,$3.result,NULL);
+      $$.truelist = new_list_quads(newQuads);
+
+      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+
+      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      $$.falselist = new_list_quads(newQuads);
+
+      $$.code = quadsConcat(tmp,NULL,newQuads);
+
+      printf("condition -> expression < expression\n");
+    }
+
 
 
   | TRUE

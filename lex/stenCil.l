@@ -19,36 +19,36 @@ SPACES \n|\t|" "
 
 %%
 
-{COMMENT}			{}
+{COMMENT}		{}
 {SPACES}      		{}
-"if"				{return IF;}	
-"else"				{return ELSE;}
-"while"				{return WHILE;}
-"for"				{return FOR;}
-"return"			{return RETURN;}
-"const"				{return CONST;}
-"stencil"			{return STENCIL;}
-"int"				{return INT;}
-"main"				{return MAIN;}
-"printf"			{return PRINTF;}
-"printi"			{return PRINTI;}
-"=="				{return EQUAL;}
-"<="				{return LESS;}
-">="				{return MORE;}
-"!="				{return NOTEQUAL;}
-"&&"				{return AND;}
-"!"|">"|"<"			{return yytext[0];}
-"||"				{return OR;}
-"++"				{return INCR;}
-"--"				{return DECR;}
-					
-{OPERATOR}			{return yytext[0];}
+"if"			{return IF;}	
+"else"			{return ELSE;}
+"while"			{return WHILE;}
+"for"			{return FOR;}
+"return"		{return RETURN;}
+"const"			{return CONST;}
+"stencil"		{return STENCIL;}
+"int"			{return INT;}
+"main"			{return MAIN;}
+"printf"		{return PRINTF;}
+"printi"		{return PRINTI;}
+"=="			{return EQUAL;}
+"<="			{return LOWEREQ;}
+">="			{return GREATEREQ;}
+"!="			{return NOTEQUAL;}
+"&&"			{return AND;}
+"!"|">"|"<"		{return yytext[0];}
+"||"			{return OR;}
+"++"			{return INCR;}
+"--"			{return DECR;}
+			
+{OPERATOR}		{return yytext[0];}
 {PUNCTUATION}		{return yytext[0];}
 
 {IDENTIFIER}		{yylval.string = strdup(yytext); return IDENTIFIER;}
-{NUMBER}			{yylval.value = atoi(yytext); return NUMBER;}
-{STRING}			{yylval.string = strdup(yytext);}
+{NUMBER}		{yylval.value = atoi(yytext); return NUMBER;}
+{STRING}		{yylval.string = strdup(yytext);}
 
-.           		 { printf("[Lex] Unknown lexical unit: %s\n", yytext); }
+.           		{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
 %%
