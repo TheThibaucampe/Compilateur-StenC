@@ -294,9 +294,7 @@ expression:
     expression '+' expression
     { 
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads = quadsGen("+",arg1,arg2,$$.result);
+      struct quads* newQuads = quadsGen("+",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -306,9 +304,7 @@ expression:
   | expression '-' expression
     { 
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads = quadsGen("-",arg1,arg2,$$.result);
+      struct quads* newQuads = quadsGen("-",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -318,9 +314,7 @@ expression:
   | expression '/' expression
     { 
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads = quadsGen("/",arg1,arg2,$$.result);
+      struct quads* newQuads = quadsGen("/",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -331,9 +325,7 @@ expression:
    | expression '*' expression
     { 
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = lookup(tds,$1.result->nom);
-      struct symbol* arg2 = lookup(tds,$3.result->nom);
-      struct quads* newQuads = quadsGen("*",arg1,arg2,$$.result);
+      struct quads* newQuads = quadsGen("*",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -354,8 +346,7 @@ expression:
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
       arg1->valeur = 0;
-      struct symbol* arg2 = lookup(tds,$2.result->nom);
-      struct quads* newQuads= quadsGen("-",arg1,arg2,$$.result);
+      struct quads* newQuads= quadsGen("-",arg1,$2.result,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -366,10 +357,9 @@ expression:
   | INCR expression
     {
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = 1;
-      struct symbol* arg2 = lookup(tds,$2.result->nom);
-      struct quads* newQuads= quadsGen("+",arg1,arg2,$$.result);
+      struct symbol* arg = newtemp(&tds);
+      arg->valeur = 1;
+      struct quads* newQuads= quadsGen("+",$2.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -380,10 +370,9 @@ expression:
   | DECR expression
     {
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = 1;
-      struct symbol* arg2 = lookup(tds,$2.result->nom);
-      struct quads* newQuads= quadsGen("-",arg2,arg1,$$.result);
+      struct symbol* arg = newtemp(&tds);
+      arg->valeur = 1;
+      struct quads* newQuads= quadsGen("-",$2.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -394,10 +383,9 @@ expression:
   | expression INCR
       {
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = 1;
-      struct symbol* arg2 = lookup(tds,$1.result->nom);
-      struct quads* newQuads= quadsGen("+",arg1,arg2,$$.result);
+      struct symbol* arg = newtemp(&tds);
+      arg->valeur = 1;
+      struct quads* newQuads= quadsGen("+",$1.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -408,10 +396,9 @@ expression:
   | expression DECR
     {
       $$.result = newtemp(&tds);
-      struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = 1;
-      struct symbol* arg2 = lookup(tds,$1.result->nom);
-      struct quads* newQuads= quadsGen("-",arg2,arg1,$$.result);
+      struct symbol* arg = newtemp(&tds);
+      arg->valeur = 1;
+      struct quads* newQuads= quadsGen("-",$1.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -464,12 +451,14 @@ condition:  //condition booléenne
 
   | TRUE
     {
+	//XXX sert a rien?
       $$.result = newtemp(&tds);
       $$.result->valeur = true;
     }
 
   | FALSE
     {
+	//XXX sert a rien?
       $$.result = newtemp(&tds);
       $$.result->valeur = false;
     }
