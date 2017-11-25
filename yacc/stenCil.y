@@ -63,6 +63,7 @@
 %type <codegen>list_var
 %type <codegen>bloc
 %type <value>tag
+%type <value>tag_else
 
 
 %left '(' ')'
@@ -152,44 +153,27 @@ statement:
       tmp->valeur = nextquad;
       $$.falselist = complete_list_quads($2.falselist, tmp);
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-
-
-      //Concaténation du code de condition avec le code destination
-      struct quads* ptr = $$.code;
-      while (ptr->suivant != NULL) ptr = ptr->suivant;
-      quadsConcat(ptr, $2.code, NULL);
-
-      //Concaténation de la truelist de la condition
-      //...
-     
-      //Concaténation du code bloc avec le code destination
-      while (ptr->suivant != NULL) ptr = ptr->suivant;
-      quadsConcat(ptr, $3.code, NULL);
-
-      //Concaténation de la falselist de la condition
-      //...
-
-      //Concaténation du nextlist du bloc
-      //
-*/
     }
 
-    | IF condition tag bloc ELSE bloc
+    | IF condition tag bloc ELSE tag_else bloc
     {
+      //Concaténation de la truelist de la condition
+      struct symbol* tmp = newtemp(&tds);
+      tmp->valeur = $3;
+      $$.truelist = complete_list_quads($2.truelist, tmp);
+     
+      tmp = newtemp(&tds);
+      tmp->valeur = nextquad;
+      struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
+      nextquad--;
+      struct quads* codeTmp = quadsConcat($2.code,$4.code ,newQuads);
 
+      //Concaténation de la falselist de la condition
+      tmp = newtemp(&tds);
+      tmp->valeur = $6;
+      $$.falselist = complete_list_quads($2.falselist, tmp);
+
+      $$.code = quadsConcat(codeTmp,$7.code,NULL);
     }
 	//function
   ;
@@ -535,9 +519,17 @@ condition:  //condition booléenne
   ;
 
 tag:
-    {$$ = nextquad;
-	printf("Tag\n");
-}
+    {
+      $$ = nextquad;
+      printf("Tag\n");
+    }
+
+tag_else:
+    {
+      nextquad++;
+      $$ = nextquad;
+      printf("Tag else\n");
+    }
 
 %%
 
