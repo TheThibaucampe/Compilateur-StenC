@@ -4,11 +4,37 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 {
 	FILE* outputFile = fopen(outputFileName,"w");
 
-	struct quads* curseur = quads;
+	fprintf(outputFile,".data\n\n");
+
+	struct symbol* curseur_tds = tds;
+
+	while(curseur_tds != NULL)
+	{
+		if(curseur_tds->label == 1)
+		{
+			fprintf(outputFile,".label %s\n",curseur_tds->nom);
+		}
+		else
+		{
+			fprintf(outputFile,".word %s %d\n",curseur_tds->nom,curseur_tds->valeur);
+		}
+
+		curseur_tds = curseur_tds->suivant;
+	}
+	
+
+
+
+/***********************text*************************/
+
+	fprintf(outputFile,"\n.text\n\n");
+
+	struct quads* curseur_quads = quads;
 	struct symbol* label;
 	int instr_cmpt = 1;
 
-	while(curseur != NULL)
+
+	while(curseur_quads != NULL)
 	{
 		if((label = lookup_label(tds,instr_cmpt)) != NULL)
 		{
@@ -16,20 +42,28 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		}
 
 
-		if(strcmp(curseur->op,"j") == 0)
-		fprintf(outputFile,"%s %s\n",curseur->op,curseur->res->nom);
+		if(strcmp(curseur_quads->op,"j") == 0)
+		{
+			fprintf(outputFile,"%s %s\n",curseur_quads->op,curseur_quads->res->nom);
+		}
 
-		else if(strcmp(curseur->op,"move") == 0)
-		fprintf(outputFile,"%s %s %s\n",curseur->op, curseur->res->nom,curseur->arg1->nom);
+		else if(strcmp(curseur_quads->op,"move") == 0)
+		{
+			fprintf(outputFile,"%s %s %s\n",curseur_quads->op, curseur_quads->res->nom,curseur_quads->arg1->nom);
+		}
 
-		else if(strcmp(curseur->op,"beq") == 0 ||strcmp(curseur->op,"bne") == 0 ||strcmp(curseur->op,"ble") == 0 ||strcmp(curseur->op,"blt") == 0 ||strcmp(curseur->op,"bge") == 0 ||strcmp(curseur->op,"bgt") == 0)
+		else if(strcmp(curseur_quads->op,"beq") == 0 ||strcmp(curseur_quads->op,"bne") == 0 ||strcmp(curseur_quads->op,"ble") == 0 ||strcmp(curseur_quads->op,"blt") == 0 ||strcmp(curseur_quads->op,"bge") == 0 ||strcmp(curseur_quads->op,"bgt") == 0)
+		{
 		
-		fprintf(outputFile,"%s %s %s %s\n",curseur->op,curseur->arg1->nom, curseur->arg2->nom,curseur->res->nom);
+			fprintf(outputFile,"%s %s %s %s\n",curseur_quads->op,curseur_quads->arg1->nom, curseur_quads->arg2->nom,curseur_quads->res->nom);
+		}
 
 		else
-		
-		fprintf(outputFile,"%s %s %s %s\n",curseur->op,curseur->res->nom, curseur->arg1->nom, curseur->arg2->nom);
-		curseur = curseur->suivant;
+		{
+			fprintf(outputFile,"%s %s %s %s\n",curseur_quads->op,curseur_quads->res->nom, curseur_quads->arg1->nom, curseur_quads->arg2->nom);
+		}
+
+		curseur_quads = curseur_quads->suivant;
 
 		instr_cmpt++;
 
