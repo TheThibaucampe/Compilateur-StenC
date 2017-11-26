@@ -4,6 +4,7 @@
   #include "tds.h"
   #include "quads.h"
   #include "list_quads.h"
+  #include "tradCode.h"
 
   void yyerror(char*);
   int yylex();
@@ -119,19 +120,16 @@ statement:
       
 
       //Concaténation de la truelist de la condition
-      struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $4;
+      struct symbol* tmp = newLabel(&tds,$4);
       $$.truelist = complete_list_quads($3.truelist, tmp);
      
       //Ajout du goto begin
-      tmp = newtemp(&tds);
-      tmp->valeur = $2;
+      tmp = newLabel(&tds,$2);
       struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
       $$.code = quadsConcat($3.code,$5.code ,newQuads);
 
       //Concaténation de la falselist de la condition
-      tmp = newtemp(&tds);
-      tmp->valeur = nextquad;
+      tmp = newLabel(&tds,nextquad);
       $$.falselist = complete_list_quads($3.falselist, tmp);
     }
 
@@ -140,8 +138,7 @@ statement:
  
 
       //Concaténation de la truelist de la condition
-      struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $3;
+      struct symbol* tmp = newLabel(&tds,$3);
       $$.truelist = complete_list_quads($2.truelist, tmp);
      
       $$.code = quadsConcat($2.code,$4.code,NULL);
@@ -149,8 +146,7 @@ statement:
 
 
       //Concaténation de la falselist de la condition
-      tmp = newtemp(&tds);
-      tmp->valeur = nextquad;
+      tmp = newLabel(&tds,nextquad);
       $$.falselist = complete_list_quads($2.falselist, tmp);
 
     }
@@ -158,19 +154,16 @@ statement:
     | IF condition tag bloc ELSE tag_else bloc
     {
       //Concaténation de la truelist de la condition
-      struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $3;
+      struct symbol* tmp = newLabel(&tds,$3);
       $$.truelist = complete_list_quads($2.truelist, tmp);
      
-      tmp = newtemp(&tds);
-      tmp->valeur = nextquad;
+      tmp = newLabel(&tds,nextquad);
       struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
       nextquad--;
       struct quads* codeTmp = quadsConcat($2.code,$4.code ,newQuads);
 
       //Concaténation de la falselist de la condition
-      tmp = newtemp(&tds);
-      tmp->valeur = $6;
+      tmp = newLabel(&tds,$6);
       $$.falselist = complete_list_quads($2.falselist, tmp);
 
       $$.code = quadsConcat(codeTmp,$7.code,NULL);
@@ -615,6 +608,8 @@ int main() {
   print(tds);
   printf("-----------------\nQuad list:\n");
   quadsPrint(quadsFinal);
+
+  tradCodeFinal("out.s",quadsFinal,tds);
 
   return 0;
 }
