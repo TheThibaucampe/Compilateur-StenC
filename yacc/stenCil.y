@@ -24,7 +24,16 @@
 		struct quads* code;
 		struct list_quads* truelist;
 		struct list_quads* falselist;
+    int width;
+    int height;
+    char* type;
 	} codegen;
+
+  struct{
+    int width;
+    int height;
+    int** tab;
+  } tab;
 }
 
 
@@ -32,6 +41,7 @@
 %token <value>NUMBER
 %token <value>TRUE
 %token <value>FALSE
+%token <tab>STENC
 %token IF
 %token ELSE
 %token WHILE
@@ -59,18 +69,23 @@
 %type <codegen>line
 %type <codegen>attribution
 %type <codegen>declaration
-%type <codegen>var
+%type <codegen>var_int
+%type <codegen>var_stencil
 %type <codegen>list_var
+%type <codegen>list_var_int
+%type <codegen>list_var_stencil
 %type <codegen>bloc
 %type <value>tag
 %type <value>tag_else
+%type <tab>array
+%type <tab>list_array 
 
 
 %left '(' ')'
 %left '!' INCR DECR
 %left '*' '/'
 %left '-' '+' '$'
-%left '<' '>' LESS MORE
+%left '<' '>' LOWEREQ GREATEREQ
 %left EQUAL NOTEQUAL
 %left AND
 %left OR
@@ -117,7 +132,6 @@ statement:
     {
       //Begin
       
-
       //Concaténation de la truelist de la condition
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $4;
@@ -137,16 +151,13 @@ statement:
 
     | IF condition tag bloc
     {
- 
-
       //Concaténation de la truelist de la condition
       struct symbol* tmp = newtemp(&tds);
       tmp->valeur = $3;
       $$.truelist = complete_list_quads($2.truelist, tmp);
      
+      //Concaténation du code de bloc
       $$.code = quadsConcat($2.code,$4.code,NULL);
-
-
 
       //Concaténation de la falselist de la condition
       tmp = newtemp(&tds);
@@ -175,10 +186,20 @@ statement:
 
       $$.code = quadsConcat(codeTmp,$7.code,NULL);
     }
-	//function
+  	
+    //Function
+    | INT IDENTIFIER '(' list_var ')' '{' line RETURN NUMBER ';' '}'
+    {
+
+    }
+
+    | STENCIL IDENTIFIER '(' list_var ')' '{' line RETURN STENC ';' '}'
+    {
+      
+    }
   ;
 
-code_line: //Redondant avec statement
+code_line:
     attribution
     {
       $$=$1;
@@ -193,32 +214,48 @@ code_line: //Redondant avec statement
   ;
 
 declaration:
-   INT list_var
+   INT list_var_int
    {
      $$=$2;
-     printf("declaration -> INT list_var\n");
+     printf("declaration -> INT list_var_int\n");
    }
-	//pour stencil
+
+	| STENCIL list_var_stencil
+   {
+     $$=$2;
+     printf("declaration -> STENCIL list_var_stencil\n");
+   }
    ;
 
-
 list_var:
-   var ',' list_var
+    list_var_int
+    {
+     $$=$1;
+     printf("list_var -> list_var_int\n");
+    }
+
+    |list_var_stencil
+    {
+      $$=$1;
+      printf("list_var -> list_var_stencil\n");
+    }
+
+list_var_int:
+   var_int ',' list_var_int
    {
      $$.code = quadsConcat($1.code,$3.code,NULL);
      //XXX result?
-     printf("list_var -> list_var var\n");
+     printf("list_var_int -> list_var_int var_int\n");
    }
 
-   | var
+   | var_int
    {
      $$=$1;
-     printf("list_var -> var\n");
+     printf("list_var_int -> var_int\n");
    }
-
   ;
 
-var: //Redondant avec statement ?
+var_int:
    IDENTIFIER
    {
      struct symbol* tmp = lookup(tds,$1);
@@ -228,11 +265,9 @@ var: //Redondant avec statement ?
        printf("Redéclaration de %s\n",$1);
        return -1;
      }
-
-
-     //XXX stocker type?
      $$.result = add(&tds, $1, false);
-     printf("var ->ID\n");
+     $$.type = "int";
+     printf("var_int ->ID\n");
      //XXX code
    }
 
@@ -246,11 +281,69 @@ var: //Redondant avec statement ?
        return -1;
      }
 
-
      $$.result = add(&tds,$1,false);
      struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
      $$.code = quadsConcat($3.code,NULL,newQuads);
+     $$.type = "int";
+   }
+;
 
+list_var_stencil:
+   var_stencil ',' list_var_stencil
+   {
+     $$.code = quadsConcat($1.code,$3.code,NULL);
+     //XXX result?
+     printf("list_var_stencil -> list_var_stencil var_stencil\n");
+   }
+
+   | var_stencil
+   {
+     $$=$1;
+     printf("list_var_stencil -> var_stencil\n");
+   }
+  ;
+
+var_stencil:
+   IDENTIFIER '{' NUMBER ',' NUMBER '}'
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp != NULL)
+     {
+       printf("Redéclaration de %s\n",$1);
+       return -1;
+     }
+     /*$$.result = add(&tds, $1, false);
+     printf("var_stencil ->ID\n");
+     //XXX code*/
+     $$.type = "stencil";
+     $$.height = $3;
+     $$.width = $5;
+   }
+
+   | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp != NULL)
+     {
+       printf("Redéclaration de %s\n",$1);
+       return -1;
+     }
+
+     //Verify that the array's size matches stencil definition
+     if (($3 != $8.height) || (2*$5 + 1 != $8.width))
+     {
+        printf("Le tableau ne correspond pas à la définition du stencil");
+        return -1;
+     }
+
+     /*$$.result = add(&tds,$1,false);
+     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
+     $$.code = quadsConcat($3.code,NULL,newQuads);*/
+     $$.type = "stencil";
+     $$.height = $3;
+     $$.width = $5;
    }
 ;
 
@@ -279,7 +372,49 @@ attribution:	//utilisable que pour les var de type int
    }
   ;
 
+array:
+  '{' list_array '}'
+  {
+    $$.height = $2.height + 1;
+    printf("array -> list_array\n");
+  }
 
+list_array:
+  NUMBER
+  {
+    //$$.result = newtemp(&tds);
+    //$$.result->valeur = $1;
+
+    //$$.code = NULL; //TODO load imediate
+    $$.width = 1;
+    $$.height = 0;
+    printf("list_array -> NUMBER (%d)\n", $1);
+  }
+
+  | NUMBER ',' list_array
+  {
+    //TODO
+
+    $$.width = $$.width + 1;
+    printf("list_array -> NUMBER ',' list_array\n");
+  }
+
+  | array ',' list_array
+  {
+    //TODO
+
+    $$.width = $$.width + 1;
+    $$.height = $$.height + 1;
+    printf("list_array -> array ',' list_array\n");
+  }
+
+  | array
+  {
+    //TODO
+
+    $$.height = 1;
+    printf("list_array -> array\n");
+  }
 
 bloc:
    '{' line '}'
@@ -331,8 +466,6 @@ expression:
       $$.code = quadsConcat($1.code,$3.code,newQuads);
       printf("expression -> expression * expression\n");
     }
-
-
 
   | '(' expression ')'
     {
@@ -426,9 +559,17 @@ expression:
       $$.result = newtemp(&tds);
       $$.result->valeur = $1;
 
-
       $$.code = NULL;	//TODO load imediate
       printf("expression -> NUMBER (%d)\n", $1);
+    }
+
+  | STENC
+    {
+      $$.result = newtemp(&tds);
+      //TODO
+
+      $$.code = NULL; //TODO load imediate
+      printf("expression -> STENC\n");
     }
   ;
 
@@ -529,18 +670,16 @@ condition:  //condition booléenne
       printf("condition -> expression < expression\n");
     }
 
-
-
   | TRUE
     {
-	//XXX sert a rien?
+	//XXX sert a rien? //Non, il faut pouvoir faire remonter la valeur booléenne
       $$.result = newtemp(&tds);
       $$.result->valeur = true;
     }
 
   | FALSE
     {
-	//XXX sert a rien?
+	//XXX sert a rien? //Non, il faut pouvoir faire remonter la valeur booléenne
       $$.result = newtemp(&tds);
       $$.result->valeur = false;
     }
@@ -581,10 +720,11 @@ condition:  //condition booléenne
 
 
 
-  | '(' condition ')' {$$ = $2;
-
-      printf("condition -> (condition)\n");
-     }
+  | '(' condition ')'
+  {
+    $$ = $2;
+    printf("condition -> (condition)\n");
+  }
 
   
   ;
