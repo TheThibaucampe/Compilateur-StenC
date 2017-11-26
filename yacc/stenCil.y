@@ -139,7 +139,7 @@ statement:
      
       //Ajout du goto begin
       tmp = newLabel(&tds,$2);
-      struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
+      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
       $$.code = quadsConcat($3.code,$5.code ,newQuads);
 
       //Concaténation de la falselist de la condition
@@ -169,7 +169,7 @@ statement:
       $$.truelist = complete_list_quads($2.truelist, tmp);
      
       tmp = newLabel(&tds,nextquad);
-      struct quads* newQuads = quadsGen("goto", NULL, NULL, tmp);
+      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
       nextquad--;
       struct quads* codeTmp = quadsConcat($2.code,$4.code ,newQuads);
 
@@ -422,7 +422,7 @@ expression:
     expression '+' expression
     { 
       $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("+",$1.result,$3.result,$$.result);
+      struct quads* newQuads = quadsGen("addu",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -432,7 +432,7 @@ expression:
   | expression '-' expression
     { 
       $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("-",$1.result,$3.result,$$.result);
+      struct quads* newQuads = quadsGen("subu",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -442,7 +442,7 @@ expression:
   | expression '/' expression
     { 
       $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("/",$1.result,$3.result,$$.result);
+      struct quads* newQuads = quadsGen("div",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -453,7 +453,7 @@ expression:
    | expression '*' expression
     { 
       $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("*",$1.result,$3.result,$$.result);
+      struct quads* newQuads = quadsGen("mul",$1.result,$3.result,$$.result);
 
 
       $$.code = quadsConcat($1.code,$3.code,newQuads);
@@ -472,7 +472,7 @@ expression:
       $$.result = newtemp(&tds);
       struct symbol* arg1 = newtemp(&tds);
       arg1->valeur = 0;
-      struct quads* newQuads= quadsGen("-",arg1,$2.result,$$.result);
+      struct quads* newQuads= quadsGen("subu",arg1,$2.result,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -482,10 +482,11 @@ expression:
 
   | INCR expression
     {
+	//XXX instr addi
       $$.result = newtemp(&tds);
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("+",$2.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("addu",$2.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -495,10 +496,11 @@ expression:
 
   | DECR expression
     {
+	//XXX instr subi
       $$.result = newtemp(&tds);
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("-",$2.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("subu",$2.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -508,10 +510,11 @@ expression:
 
   | expression INCR
       {
+	//XXX instr addi
       $$.result = newtemp(&tds);
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("+",$1.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("addu",$1.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -521,10 +524,11 @@ expression:
 
   | expression DECR
     {
+	//XXX instr subi
       $$.result = newtemp(&tds);
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("-",$1.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("subu",$1.result,arg,$$.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -569,12 +573,12 @@ expression:
 condition:  //condition booléenne
     expression EQUAL expression
     {
-      struct quads* newQuads = quadsGen("==",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("beq",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);
@@ -585,12 +589,12 @@ condition:  //condition booléenne
 
     | expression NOTEQUAL expression
     {
-      struct quads* newQuads = quadsGen("!=",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("bne",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);
@@ -601,12 +605,12 @@ condition:  //condition booléenne
 
     | expression GREATEREQ expression
     {
-      struct quads* newQuads = quadsGen(">=",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("bge",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);
@@ -617,12 +621,12 @@ condition:  //condition booléenne
 
     | expression '>' expression
     {
-      struct quads* newQuads = quadsGen(">",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("bgt",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);
@@ -633,12 +637,12 @@ condition:  //condition booléenne
 
     | expression LOWEREQ expression
     {
-      struct quads* newQuads = quadsGen("<=",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("ble",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);
@@ -650,12 +654,12 @@ condition:  //condition booléenne
 
     | expression '<' expression
     {
-      struct quads* newQuads = quadsGen("<",$1.result,$3.result,NULL);
+      struct quads* newQuads = quadsGen("blt",$1.result,$3.result,NULL);
       $$.truelist = new_list_quads(newQuads);
 
       struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      newQuads = quadsGen("goto",NULL,NULL,NULL);
+      newQuads = quadsGen("j",NULL,NULL,NULL);
       $$.falselist = new_list_quads(newQuads);
 
       $$.code = quadsConcat(tmp,NULL,newQuads);

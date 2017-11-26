@@ -16,15 +16,19 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		}
 
 
-		if(strcmp(curseur->op,"goto") == 0)
+		if(strcmp(curseur->op,"j") == 0)
 		fprintf(outputFile,"%s %s\n",curseur->op,curseur->res->nom);
 
 		else if(strcmp(curseur->op,"move") == 0)
 		fprintf(outputFile,"%s %s %s\n",curseur->op, curseur->res->nom,curseur->arg1->nom);
 
+		else if(strcmp(curseur->op,"beq") == 0 ||strcmp(curseur->op,"bne") == 0 ||strcmp(curseur->op,"ble") == 0 ||strcmp(curseur->op,"blt") == 0 ||strcmp(curseur->op,"bge") == 0 ||strcmp(curseur->op,"bgt") == 0)
+		
+		fprintf(outputFile,"%s %s %s %s\n",curseur->op,curseur->arg1->nom, curseur->arg2->nom,curseur->res->nom);
+
 		else
 		
-		fprintf(outputFile,"%s %s %s %s\n",curseur->res->nom,curseur->arg1->nom, curseur->op, curseur->arg2->nom);
+		fprintf(outputFile,"%s %s %s %s\n",curseur->op,curseur->res->nom, curseur->arg1->nom, curseur->arg2->nom);
 		curseur = curseur->suivant;
 
 		instr_cmpt++;
