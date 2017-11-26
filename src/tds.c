@@ -11,11 +11,25 @@ struct symbol* newtemp(struct symbol** tds)
 }
 
 
+struct symbol* newLabel(struct symbol** tds, int valeur)
+{
+	static int nb_label = 0;
+	char* nom=malloc(MAX_TAILLE_TEMP*sizeof(char));
+	snprintf(nom, MAX_TAILLE_TEMP, "label_%d",nb_label);
+	struct symbol* newlabel = add(tds, nom,true);
+	newlabel->valeur = valeur;
+	newlabel->label = 1;
+	nb_label++;
+	return newlabel;
+}
+
+
 struct symbol* add(struct symbol** tds, char* nom, int cst)
 {
 	struct symbol* newSymbol = malloc(sizeof(struct symbol));
 	newSymbol->nom = strdup(nom);
 	newSymbol->constante = cst;
+	newSymbol->label = 0;
 	newSymbol->suivant = NULL;
 
 	if(*tds == NULL)
@@ -42,6 +56,22 @@ struct symbol* lookup(struct symbol* tds, char* nom)
 	while(curseur != NULL)
 	{
 		if(strcmp(nom,curseur->nom) == 0)
+		{
+			return curseur;
+		}
+		curseur = curseur->suivant;
+	}
+
+	return NULL;
+}
+
+
+struct symbol* lookup_label(struct symbol* tds, int numInstr)
+{
+	struct symbol* curseur = tds;
+	while(curseur != NULL)
+	{
+		if(curseur->label == 1 && curseur->valeur == numInstr)
 		{
 			return curseur;
 		}
