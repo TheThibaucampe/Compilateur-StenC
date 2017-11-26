@@ -12,11 +12,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 	{
 		if(curseur_tds->label == 1)
 		{
-			fprintf(outputFile,".label %s\n",curseur_tds->nom);
+		//	fprintf(outputFile,"%s: .label\n",curseur_tds->nom);
 		}
 		else
 		{
-			fprintf(outputFile,".word %s %d\n",curseur_tds->nom,curseur_tds->valeur);
+			fprintf(outputFile,"%s: .word %d\n",curseur_tds->nom,curseur_tds->valeur);
 		}
 
 		curseur_tds = curseur_tds->suivant;
