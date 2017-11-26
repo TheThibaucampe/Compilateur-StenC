@@ -6,7 +6,7 @@
 %}
 
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
-NUMBER (("0"|"0x"|"0b")?[0-9]+)|([0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?[alLfF]?)
+NUMBER (("0"|"0x"|"0b")?[0-9]+)
 OPERATOR "+"|"-"|"*"|"/"|"="
 BOOL_OPERATOR "<"|">"|"<="|">="|"=="|"!="|"&&"|"!"|"||"
 UNARY_POSTFIX_OPERATOR "++"|"--"
@@ -20,7 +20,7 @@ SPACES \n|\t|" "
 %%
 
 {COMMENT}		{}
-{SPACES}      		{}
+{SPACES}      	{}
 "if"			{return IF;}	
 "else"			{return ELSE;}
 "while"			{return WHILE;}
@@ -43,12 +43,12 @@ SPACES \n|\t|" "
 "--"			{return DECR;}
 			
 {OPERATOR}		{return yytext[0];}
-{PUNCTUATION}		{return yytext[0];}
+{PUNCTUATION}	{return yytext[0];}
 
-{IDENTIFIER}		{yylval.string = strdup(yytext); return IDENTIFIER;}
+{IDENTIFIER}	{yylval.string = strdup(yytext); return IDENTIFIER;}
 {NUMBER}		{yylval.value = atoi(yytext); return NUMBER;}
 {STRING}		{yylval.string = strdup(yytext);}
 
-.           		{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
+.           	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 
 %%
