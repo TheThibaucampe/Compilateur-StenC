@@ -17,6 +17,7 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		else
 		{
 			fprintf(outputFile,"%s: .word %d\n",curseur_tds->nom,curseur_tds->valeur);
+			//XXX les nom de varialbe qui ont le meme nom que des instr posent probleme
 		}
 
 		curseur_tds = curseur_tds->suivant;
@@ -27,7 +28,7 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 
 /***********************text*************************/
 
-	fprintf(outputFile,"\n.text\n\n");
+	fprintf(outputFile,"\n.text\n\nmain:\n\n");
 
 	struct quads* curseur_quads = quads;
 	struct symbol* label;
@@ -79,6 +80,8 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 	{
 		fprintf(outputFile,"%s:\n",label->nom);
 	}
+
+	fprintf(outputFile,"li $v0 10\nsyscall");
 
 	fclose(outputFile);
 }
