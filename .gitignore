@@ -6,3 +6,4 @@ y.tab.h
 
 *.swp
 y.output
+*.s
