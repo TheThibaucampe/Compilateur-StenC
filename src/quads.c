@@ -60,9 +60,11 @@ struct quads* quadsConcat(struct quads* quads1, struct quads* quads2, struct qua
 void quadsPrint(struct quads* quads)
 {
 	struct quads* curseur = quads;
+	int i=1;
 
 	while(curseur != NULL)
 	{
+		printf("%d ",i);
 		if(strcmp(curseur->op,"j") == 0)
 		printf("%s %s\n",curseur->op,curseur->res->nom);
 
@@ -73,5 +75,6 @@ void quadsPrint(struct quads* quads)
 		
 		printf("%s %s %s %s\n",curseur->res->nom,curseur->arg1->nom, curseur->op, curseur->arg2->nom);
 		curseur = curseur->suivant;
+		i++;
 	}
 }
