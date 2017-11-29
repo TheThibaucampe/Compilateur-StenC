@@ -13,13 +13,17 @@ struct symbol* newtemp(struct symbol** tds)
 
 struct symbol* newLabel(struct symbol** tds, int valeur)
 {
-	static int nb_label = 0;
-	char* nom=malloc(MAX_TAILLE_TEMP*sizeof(char));
-	snprintf(nom, MAX_TAILLE_TEMP, "label_%d",nb_label);
-	struct symbol* newlabel = add(tds, nom,true);
-	newlabel->valeur = valeur;
-	newlabel->label = 1;
-	nb_label++;
+	struct symbol* newlabel;
+	if((newlabel = lookup_label(*tds,valeur)) == NULL)
+	{
+		static int nb_label = 0;
+		char* nom=malloc(MAX_TAILLE_TEMP*sizeof(char));
+		snprintf(nom, MAX_TAILLE_TEMP, "label_%d",nb_label);
+		newlabel = add(tds, nom,true);
+		newlabel->valeur = valeur;
+		newlabel->label = 1;
+		nb_label++;
+	}
 	return newlabel;
 }
 
