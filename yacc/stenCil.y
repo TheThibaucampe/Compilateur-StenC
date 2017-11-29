@@ -76,11 +76,11 @@
 %type <codegen>list_var_int
 %type <codegen>list_var_stencil
 %type <codegen>bloc
+%type <codegen>avancement_for
 %type <value>tag
 %type <value>tag_else
 %type <tab>array
 %type <tab>list_array 
-
 
 %left '(' ')'
 %left '!' INCR DECR
@@ -179,6 +179,36 @@ statement:
 
       $$.code = quadsConcat(codeTmp,$7.code,NULL);
     }
+
+    | FOR '(' code_line ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
+      {
+
+      nextquad+=($10-$8);
+
+      //Begin
+      
+      //Concaténation de la truelist de la condition
+      struct symbol* tmp = newLabel(&tds,$13);
+      $$.truelist = complete_list_quads($6.truelist, tmp);
+     
+
+      struct quads* code_tmp = quadsConcat($3.code,$6.code,$14.code);
+      
+
+      //Ajout du goto begin
+      tmp = newLabel(&tds,$5);
+      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
+      $$.code = quadsConcat(code_tmp,$9.code ,newQuads);
+
+      //Concaténation de la falselist de la condition
+      tmp = newLabel(&tds,nextquad);
+      $$.falselist = complete_list_quads($6.falselist, tmp);
+
+
+      $$.code=code_tmp;
+
+        printf("statement -> for\n");
+      }
   	
     //Function
     | INT IDENTIFIER '(' list_var ')' '{' line RETURN NUMBER ';' '}'
@@ -191,6 +221,18 @@ statement:
       
     }
   ;
+
+
+avancement_for:
+    attribution
+    {
+      printf("avencement_for -> attribution\n");
+    }
+
+    | expression
+    {
+      printf("avencement_for -> expression\n");
+    }
 
 code_line:
     attribution
@@ -416,6 +458,12 @@ bloc:
      printf("bloc -> { line }\n");
    }
 
+ /*  | statement
+   {
+     $$=$1;
+     printf("bloc ->statement\n");
+   } TODO Erreur shift/reduce */ 
+;
 
 
 expression:
