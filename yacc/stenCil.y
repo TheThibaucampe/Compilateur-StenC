@@ -255,6 +255,17 @@ code_line:
       tmp->is_string = 1;
       $$.code = quadsGen("printf",NULL,NULL,tmp);
     }
+
+    | PRINTI '(' IDENTIFIER ')'
+    {
+      struct symbol* tmp;
+      if((tmp = lookup(tds,$3)) == NULL)
+      {
+        printf("Erreur, %s non défini\n",$3);
+	exit(-1);
+      }
+      $$.code = quadsGen("printi",NULL,NULL,tmp);
+    }
   ;
 
 declaration:

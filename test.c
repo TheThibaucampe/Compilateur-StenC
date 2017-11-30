@@ -2,15 +2,15 @@ int u=0;
 int i=(1+1)*2;
 int k;
 
-while(u<i)
+for(u=0;u<=i;u=u+1)
 {
 	if(u==3)
 	{
-		k=1;
+		printf("le 3\n");
 	}
 	else
 	{
-		k=2;
+		printi(u);
+		printf("\n");
 	}
-	u=u+1;
 }

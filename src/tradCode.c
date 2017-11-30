@@ -52,6 +52,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 			fprintf(outputFile,"j %s\n",curseur_quads->res->nom);
 		}
 
+		else if(strcmp(curseur_quads->op,"printi") == 0)
+		{
+			fprintf(outputFile,"lw $a0 %s\nli $v0 1\nsyscall\n",curseur_quads->res->nom);
+		}
+
 		else if(strcmp(curseur_quads->op,"printf") == 0)
 		{
 			fprintf(outputFile,"la $a0 %s\nli $v0 4\nsyscall\n",curseur_quads->res->nom);

@@ -65,7 +65,7 @@ void quadsPrint(struct quads* quads)
 	while(curseur != NULL)
 	{
 		printf("%d ",i);
-		if(strcmp(curseur->op,"j") == 0 || strcmp(curseur->op,"printf") ==0)
+		if(strcmp(curseur->op,"j") == 0 || strcmp(curseur->op,"printf") ==0 || strcmp(curseur->op,"printi") ==0)
 		printf("%s %s\n",curseur->op,curseur->res->nom);
 
 		else if(strcmp(curseur->op,"move") == 0)
