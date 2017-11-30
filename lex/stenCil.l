@@ -47,7 +47,7 @@ SPACES \n|\t|" "
 
 {IDENTIFIER}	{yylval.string = strdup(yytext); return IDENTIFIER;}
 {NUMBER}		{yylval.value = atoi(yytext); return NUMBER;}
-{STRING}		{yylval.string = strdup(yytext);}
+{STRING}		{yylval.string = strdup(yytext); return STRING;}
 
 .           	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
 

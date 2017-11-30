@@ -12,7 +12,11 @@ struct symbol{
 	char* nom;
 	int constante;
 	int label;
-	int valeur;
+	int is_string;
+	union {
+		int valeur;
+		char* string;
+	};
 	struct symbol* suivant;
 };
 

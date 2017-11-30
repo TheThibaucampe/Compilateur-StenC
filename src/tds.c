@@ -34,6 +34,7 @@ struct symbol* add_temp_label(struct symbol** tds, char* nom, int cst)
 	newSymbol->nom = strdup(nom);
 	newSymbol->constante = cst;
 	newSymbol->label = 0;
+	newSymbol->is_string = 0;
 	newSymbol->suivant = NULL;
 
 	if(*tds == NULL)
@@ -122,7 +123,10 @@ void print(struct symbol* tds)
 	struct symbol* curseur = tds;
 	while(curseur != NULL)
 	{
-		printf("%s %d %d\n",curseur->nom,curseur->constante,curseur->valeur);
+		if(curseur->is_string)
+			printf("%s %d %s\n",curseur->nom,curseur->constante,curseur->string);
+		else
+			printf("%s %d %d\n",curseur->nom,curseur->constante,curseur->valeur);
 		curseur = curseur->suivant;
 	}
 }

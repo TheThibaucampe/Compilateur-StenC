@@ -14,6 +14,10 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		{
 		//	fprintf(outputFile,"%s: .label\n",curseur_tds->nom);
 		}
+		else if(curseur_tds->is_string)
+		{
+			fprintf(outputFile,"%s: .asciiz %s\n",curseur_tds->nom,curseur_tds->string);
+		}
 		else
 		{
 			fprintf(outputFile,"%s: .word %d\n",curseur_tds->nom,curseur_tds->valeur);
@@ -46,6 +50,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		if(strcmp(curseur_quads->op,"j") == 0)
 		{
 			fprintf(outputFile,"j %s\n",curseur_quads->res->nom);
+		}
+
+		else if(strcmp(curseur_quads->op,"printf") == 0)
+		{
+			fprintf(outputFile,"la $a0 %s\nli $v0 4\nsyscall\n",curseur_quads->res->nom);
 		}
 
 		else if(strcmp(curseur_quads->op,"move") == 0)

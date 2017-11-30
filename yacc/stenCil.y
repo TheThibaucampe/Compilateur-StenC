@@ -62,6 +62,7 @@
 %token OR
 %token INCR
 %token DECR
+%token <string>STRING
 
 %type <codegen>condition
 %type <codegen>expression
@@ -180,7 +181,7 @@ statement:
       $$.code = quadsConcat(codeTmp,$7.code,NULL);
     }
 
-    | FOR '(' code_line ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
+    | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
       {
 
       nextquad+=($10-$8);
@@ -245,6 +246,14 @@ code_line:
     {
        $$ = $1;
        printf("code_ligne -> declaration\n");
+    }
+
+    | PRINTF '(' STRING ')'
+    {
+      struct symbol* tmp = newtemp(&tds);
+      tmp->string = $3;
+      tmp->is_string = 1;
+      $$.code = quadsGen("printf",NULL,NULL,tmp);
     }
   ;
 
