@@ -20,6 +20,7 @@ struct symbol{
 struct symbol* newtemp(struct symbol**);
 struct symbol* newLabel(struct symbol**, int);
 struct symbol* add(struct symbol**, char*, int);
+struct symbol* add_temp_label(struct symbol**, char*, int);
 struct symbol* lookup(struct symbol*, char*);
 struct symbol* lookup_label(struct symbol*, int);
 void print(struct symbol*);
