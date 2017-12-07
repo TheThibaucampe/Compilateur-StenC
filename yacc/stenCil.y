@@ -5,6 +5,7 @@
   #include "quads.h"
   #include "list_quads.h"
   #include "tradCode.h"
+  #include "dim.h"
 
   void yyerror(char*);
   int yylex();
@@ -27,6 +28,8 @@
 		struct list_quads* falselist;
     int width;
     int height;
+		int nb_dim;
+		struct symbol* decal;
     char* type;
 	} codegen;
 
@@ -82,6 +85,10 @@
 %type <value>tag_else
 %type <tab>array
 %type <tab>list_array 
+%type <codegen>variable
+%type <codegen>index_attribution
+%type <codegen>index_declaration
+%type <codegen>variable_declaration
 
 %left '(' ')'
 %left '!' INCR DECR
@@ -311,37 +318,97 @@ list_var_int:
   ;
 
 var_int:
+   variable_declaration
+   {
+     $$.type = "int";
+     printf("var_int -> variable_declaration\n");
+     //XXX code
+   }
+
+   | variable_declaration '=' expression
+   {
+     struct symbol* tmp = lookup(tds,$1.result->nom);
+
+     if(tmp != NULL)
+     {
+       printf("Redéclaration de %s\n",$1.result->nom);
+       return -1;
+     }
+
+     $$.result = add(&tds,$1.result->nom,false);
+     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
+     $$.code = quadsConcat($3.code,NULL,newQuads);
+     $$.type = "int";
+
+     printf("var_int -> variable = expression\n");
+   }
+;
+
+
+variable_declaration:
    IDENTIFIER
    {
      struct symbol* tmp = lookup(tds,$1);
 
      if(tmp != NULL)
      {
-       printf("Redéclaration de %s\n",$1);
-       return -1;
+       printf("Erreur, redéclaration de %s\n",$1);
+       exit(-1);
      }
+
      $$.result = add(&tds, $1, false);
-     $$.type = "int";
-     printf("var_int ->ID\n");
-     //XXX code
+
+     //$$.result = tmp;		//TODO
+
+     printf("variable_declaration -> ID\n");
    }
 
-   | IDENTIFIER '=' expression
+   | index_declaration ']'
    {
-     struct symbol* tmp = lookup(tds,$1);
+     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
 
-     if(tmp != NULL)
+     if(tmp == NULL)
      {
-       printf("Redéclaration de %s\n",$1);
+       printf("index_declaration: première utilisation de %s sans déclaration\n",$1.result->nom);
        return -1;
      }
 
-     $$.result = add(&tds,$1,false);
-     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
-     $$.code = quadsConcat($3.code,NULL,newQuads);
-     $$.type = "int";
+     if(tmp->constante == true)
+     {
+       printf("Tentative de modification d'une constante\n");
+       return -1;
+     }
+ 
+
+     printf("===========+>tab declaré\n");
+     printf("variable_declaration -> index_declaration ]\n");
    }
-;
+  ;
+
+
+index_declaration:
+   index_declaration ',' NUMBER	//TODO calcul des expression
+   {
+     add_dim($$.result,$3);
+     $$.nb_dim = $1.nb_dim+1;
+     $$.result = $1.result;
+     $$.decal = $1.decal;
+
+     printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
+   }
+
+   | IDENTIFIER '[' NUMBER
+   {
+     $$.result = add(&tds,$1,false);
+     add_dim($$.result,$3);
+     $$.decal = NULL;
+     $$.code = NULL;
+     $$.nb_dim = 1;
+
+     printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
+   }
+  ;
+
 
 list_var_stencil:
    var_stencil ',' list_var_stencil
@@ -404,13 +471,31 @@ var_stencil:
 
 
 attribution:	//utilisable que pour les var de type int
-   IDENTIFIER '=' expression
+   variable '=' expression
+   {
+     if($1.decal == NULL)
+     {
+     //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
+     struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
+     $$.code = quadsConcat($3.code,NULL,newQuads);
+     }
+     else
+     {
+        printf("Tableau %d\n",$1.decal->valeur);
+     }
+     printf("attribution -> variable = expression\n");
+   }
+  ;
+
+
+variable:
+   IDENTIFIER
    {
      struct symbol* tmp = lookup(tds,$1);
 
      if(tmp == NULL)
      {
-       printf("première utilisation de %s sans déclaration\n",$1);
+       printf("ID: première utilisation de %s sans déclaration\n",$1);
        return -1;
      }
 
@@ -420,10 +505,58 @@ attribution:	//utilisable que pour les var de type int
        return -1;
      }
 
-     //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
-     struct quads* newQuads = quadsGen("move",$3.result,NULL,tmp);
-     $$.code = quadsConcat($3.code,NULL,newQuads);
-     printf("attribution -> ID = expression\n");
+     //$$.result = tmp;		//TODO
+
+     printf("variable -> ID\n");
+   }
+
+   | index_attribution ']'
+   {
+     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+
+     if(tmp == NULL)
+     {
+       printf("index: première utilisation de %s sans déclaration\n",$1.result->nom);
+       return -1;
+     }
+
+     if(tmp->constante == true)
+     {
+       printf("Tentative de modification d'une constante\n");
+       return -1;
+     }
+ 
+
+     printf("variable -> ID[expression]\n");
+   }
+  ;
+
+
+index_attribution:
+   index_attribution ',' expression
+   {
+     $$.nb_dim = $1.nb_dim+1;
+     struct symbol* symbol_size_dim;
+     symbol_size_dim->valeur = dim_size(tds,$1.result->nom,$$.nb_dim);
+     struct symbol* tmp1 = newtemp(&tds);
+     struct symbol* tmp2 = newtemp(&tds);
+     struct quads* quads1 = quadsGen("mul",$1.decal,symbol_size_dim,tmp1);
+     struct quads* quads2 = quadsGen("addu",tmp1,$3.result,tmp2);
+     $$.code = quadsConcat($1.code,$3.code,NULL);
+     $$.code = quadsConcat($$.code,quads1,quads2);
+     $$.result = $1.result;
+     $$.decal = tmp2;
+
+     printf("index_attribution -> index_attribution , expression\n");
+   }
+   | IDENTIFIER '[' expression
+   {
+     $$.result = add(&tds,$1,false);
+     $$.decal = $3.result;
+     $$.code = $3.code;
+     $$.nb_dim = 1;
+
+     printf("index_attribution -> ID [ expression\n");
    }
   ;
 
