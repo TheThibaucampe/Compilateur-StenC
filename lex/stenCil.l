@@ -1,12 +1,12 @@
 %{
-  #include <stdlib.h>
-  #include <string.h>
+  #include "binaryconvert.h"
   #include "y.tab.h"
   #include <string.h>
+
 %}
 
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
-NUMBER (("0"|"0x"|"0b")?[0-9]+)
+NUMBER "0"|([1-9][0-9]*)|("0b"[0-1]+)|("0"[0-7]+)|("0x"[0-9A-F]+)
 OPERATOR "+"|"-"|"*"|"/"|"="
 BOOL_OPERATOR "<"|">"|"<="|">="|"=="|"!="|"&&"|"!"|"||"
 UNARY_POSTFIX_OPERATOR "++"|"--"
@@ -43,10 +43,11 @@ SPACES \n|\t|" "
 "--"			{return DECR;}
 			
 {OPERATOR}		{return yytext[0];}
+"]"{SPACES}*"["	{return DIM_SEPARATOR;}
 {PUNCTUATION}	{return yytext[0];}
 
 {IDENTIFIER}	{yylval.string = strdup(yytext); return IDENTIFIER;}
-{NUMBER}		{yylval.value = atoi(yytext); return NUMBER;}
+{NUMBER}		{yylval.value = convert(yytext); return NUMBER;}
 {STRING}		{yylval.string = strdup(yytext); return STRING;}
 
 .           	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
