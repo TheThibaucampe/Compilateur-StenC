@@ -102,6 +102,22 @@ struct symbol* lookup(struct symbol* tds, char* nom)
 }
 
 
+struct symbol* lookup_tab(struct symbol* tds, char* nom)
+{
+	struct symbol* curseur = tds;
+	while(curseur != NULL)
+	{
+		if(strcmp(nom,curseur->nom) == 0)
+		{
+			return curseur;
+		}
+		curseur = curseur->suivant;
+	}
+
+	return NULL;
+}
+
+
 struct symbol* lookup_label(struct symbol* tds, int numInstr)
 {
 	struct symbol* curseur = tds;
@@ -116,6 +132,7 @@ struct symbol* lookup_label(struct symbol* tds, int numInstr)
 
 	return NULL;
 }
+
 
 
 void print(struct symbol* tds)
