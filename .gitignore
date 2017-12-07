@@ -7,3 +7,5 @@ y.tab.h
 *.swp
 y.output
 *.s
+*.DS_Store
+*.dSYM*
