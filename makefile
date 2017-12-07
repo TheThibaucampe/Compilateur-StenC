@@ -6,7 +6,7 @@ UNAME_S = $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
     LDFLAGS = -ly -ll -Iinclude
 else
-	LDFLAGS = -ly -lfl -Iinclude
+	LDFLAGS = -ly -lfl -lm -Iinclude
 endif
 EXEC = stenCil
 
