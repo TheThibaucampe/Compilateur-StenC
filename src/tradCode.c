@@ -20,12 +20,13 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		}
 		else if(curseur_tds->is_array)
 		{
-			fprintf(outputFile,"%s: .word %d",curseur_tds->nom,curseur_tds->valeur_tab[0]);
+			fprintf(outputFile,"%s: .align 2\n.word %d",curseur_tds->nom,curseur_tds->valeur_tab[0]);
 			int i;
 			for(i=1;i<curseur_tds->length;i++)
 			{
 				fprintf(outputFile,",%d",curseur_tds->valeur_tab[i]);
 			}
+			fprintf(outputFile,"\n");
 		}
 		else
 		{
@@ -83,6 +84,16 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->nom);
 			fprintf(outputFile,"lw $t1 %s\n",curseur_quads->arg2->nom);
 			fprintf(outputFile,"%s $t0 $t1 %s\n",curseur_quads->op,curseur_quads->res->nom);
+		}
+
+		else if(strcmp(curseur_quads->op,"store_into_tab") == 0)
+		{
+//			fprintf(outputFile,"la $t0 %s\n",curseur_quads->res->nom);
+			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg2->nom);
+			fprintf(outputFile,"li $t1 4\n");
+			fprintf(outputFile,"mul $t0 $t0 $t1\n");
+			fprintf(outputFile,"lw $t3 %s\n",curseur_quads->arg1->nom);
+			fprintf(outputFile,"sw $t3 %s($t0)\n",curseur_quads->res->nom);
 		}
 
 		else

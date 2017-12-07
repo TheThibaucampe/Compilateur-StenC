@@ -86,7 +86,7 @@
 %type <value>tag_else
 %type <tab>array
 %type <tab>list_array 
-%type <codegen>variable
+%type <codegen>variable_attribution
 %type <codegen>index_attribution
 %type <codegen>index_declaration
 %type <codegen>variable_declaration
@@ -476,7 +476,7 @@ var_stencil:
 
 
 attribution:	//utilisable que pour les var de type int
-   variable '=' expression
+   variable_attribution '=' expression
    {
      if($1.decal == NULL)
      {
@@ -494,7 +494,7 @@ attribution:	//utilisable que pour les var de type int
   ;
 
 
-variable:
+variable_attribution:
    IDENTIFIER
    {
      struct symbol* tmp = lookup(tds,$1);
@@ -511,26 +511,16 @@ variable:
        return -1;
      }
 
-     //$$.result = tmp;		//TODO
+     $$.result = tmp;
 
      printf("variable -> ID\n");
    }
 
    | index_attribution ']'
    {
-     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
 
-     if(tmp == NULL)
-     {
-       printf("index: première utilisation de %s sans déclaration\n",$1.result->nom);
-       return -1;
-     }
-
-     if(tmp->constante == true)
-     {
-       printf("Tentative de modification d'une constante\n");
-       return -1;
-     }
+     $$ = $1;
  
 
      printf("variable -> ID[expression]\n");
@@ -542,7 +532,7 @@ index_attribution:
    index_attribution DIM_SEPARATOR expression
    {
      $$.nb_dim = $1.nb_dim+1;
-     struct symbol* symbol_size_dim;
+     struct symbol* symbol_size_dim = newtemp(&tds);
      symbol_size_dim->valeur = dim_size(tds,$1.result->nom,$$.nb_dim);
      struct symbol* tmp1 = newtemp(&tds);
      struct symbol* tmp2 = newtemp(&tds);
@@ -557,7 +547,18 @@ index_attribution:
    }
    | IDENTIFIER '[' expression
    {
-     $$.result = add(&tds,$1,false);
+     $$.result = lookup(tds,$1);
+if($$.result == NULL)
+     {
+       printf("index: première utilisation de %s sans déclaration\n",$1);
+       return -1;
+     }
+
+     if($$.result->constante == true)
+     {
+       printf("Tentative de modification d'une constante\n");
+       return -1;
+     }
      $$.decal = $3.result;
      $$.code = $3.code;
      $$.nb_dim = 1;
