@@ -90,6 +90,7 @@
 %type <codegen>index_attribution
 %type <codegen>index_declaration
 %type <codegen>variable_declaration
+%type <codegen>variable
 
 %left DIM_SEPARATOR
 %left '(' ')'
@@ -265,15 +266,10 @@ code_line:
       $$.code = quadsGen("printf",NULL,NULL,tmp);
     }
 
-    | PRINTI '(' IDENTIFIER ')'
+    | PRINTI '(' variable ')'
     {
-      struct symbol* tmp;
-      if((tmp = lookup(tds,$3)) == NULL)
-      {
-        printf("Erreur, %s non défini\n",$3);
-	exit(-1);
-      }
-      $$.code = quadsGen("printi",NULL,NULL,tmp);
+      struct quads* newQuads = quadsGen("printi",NULL,NULL,$3.result);
+      $$.code = quadsConcat($3.code,NULL,newQuads);
     }
   ;
 
@@ -345,6 +341,40 @@ var_int:
      printf("var_int -> variable = expression\n");
    }
 ;
+
+
+variable:
+   IDENTIFIER
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp == NULL)
+     {
+       printf("ID: première utilisation de %s sans déclaration\n",$1);
+       return -1;
+     }
+
+
+     $$.result = tmp;
+     $$.code = NULL;
+
+     printf("variable -> ID\n");
+   }
+
+   | index_attribution ']'
+   {
+    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+
+     $$.result = newtemp(&tds);
+     struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
+     $$.code = quadsConcat($1.code,NULL,newQuads);
+     
+ 
+
+     printf("variable -> ID[expression]\n");
+   }
+  ; 
+
 
 
 variable_declaration:
@@ -691,10 +721,10 @@ expression:
   | INCR expression
     {
 	//XXX instr addi
-      $$.result = newtemp(&tds);
+      $$.result = $2.result;
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("addu",$2.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("addu",$2.result,arg,$2.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -705,10 +735,10 @@ expression:
   | DECR expression
     {
 	//XXX instr subi
-      $$.result = newtemp(&tds);
+      $$.result = $2.result;
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("subu",$2.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("subu",$2.result,arg,$2.result);
 
 
       $$.code = quadsConcat(NULL,$2.code,newQuads);
@@ -719,10 +749,10 @@ expression:
   | expression INCR
       {
 	//XXX instr addi
-      $$.result = newtemp(&tds);
+      $$.result = $1.result;
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("addu",$1.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("addu",$1.result,arg,$1.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -733,10 +763,10 @@ expression:
   | expression DECR
     {
 	//XXX instr subi
-      $$.result = newtemp(&tds);
+      $$.result = $1.result;
       struct symbol* arg = newtemp(&tds);
       arg->valeur = 1;
-      struct quads* newQuads= quadsGen("subu",$1.result,arg,$$.result);
+      struct quads* newQuads= quadsGen("subu",$1.result,arg,$1.result);
 
 
       $$.code = quadsConcat(NULL,$1.code,newQuads);
@@ -744,19 +774,12 @@ expression:
 
     }
 
-  | IDENTIFIER
+  | variable
     {
-      $$.result = lookup(tds, $1);
+      $$.result = $1.result;
 
-      if($$.result == NULL)
-      {
-        printf("utilisation de %s sans declaration\n",$1);
-        return -1;
-      }
-
-
-      $$.code = NULL;
-      printf("expression -> IDENTIFIER (%s)\n", $1);
+      $$.code = $1.code;
+      printf("expression -> variable\n");
     }
 
   | NUMBER
