@@ -20,9 +20,9 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		}
 		else if(curseur_tds->is_array)
 		{
-			fprintf(outputFile,"%s: .word %d",curseur_tds->nom,curseur_tds->valeur);
+			fprintf(outputFile,"%s: .word %d",curseur_tds->nom,curseur_tds->valeur_tab[0]);
 			int i;
-			for(i=0;i<curseur_tds->length;i++)
+			for(i=1;i<curseur_tds->length;i++)
 			{
 				fprintf(outputFile,",%d",curseur_tds->valeur_tab[i]);
 			}
