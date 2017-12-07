@@ -337,7 +337,7 @@ var_int:
        return -1;
      }
 
-     //$$.result = add(&tds,$1.result->nom,false);
+	//TODO test si tableau ou pas
      struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
      $$.code = quadsConcat($3.code,NULL,newQuads);
      $$.type = "int";
@@ -381,8 +381,8 @@ variable_declaration:
        return -1;
      }
  
-
-     printf("===========+>tab declaré\n");
+     $1.result->length = $1.decal->valeur;
+     $1.result->valeur_tab =(int*) malloc($1.decal->valeur*sizeof(int));
      printf("variable_declaration -> index_declaration ]\n");
    }
   ;
@@ -391,10 +391,10 @@ variable_declaration:
 index_declaration:
    index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
    {
-     add_dim($$.result,$3);
+     add_dim($1.result,$3);
      $$.nb_dim = $1.nb_dim+1;
      $$.result = $1.result;
-     $$.decal = $1.decal;
+     $$.decal->valeur = $1.decal->valeur*$3;
 
      printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
    }
@@ -402,8 +402,11 @@ index_declaration:
    | IDENTIFIER '[' NUMBER
    {
      $$.result = add(&tds,$1,false);
+     $$.result->is_array = true;
+	//TODO test si tab existe deja
      add_dim($$.result,$3);
-     $$.decal = NULL;
+     $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
+     $$.decal->valeur = $3;
      $$.code = NULL;
      $$.nb_dim = 1;
 
@@ -478,12 +481,13 @@ attribution:	//utilisable que pour les var de type int
      if($1.decal == NULL)
      {
      //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
-     struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
-     $$.code = quadsConcat($3.code,NULL,newQuads);
+       struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
+       $$.code = quadsConcat($3.code,NULL,newQuads);
      }
      else
      {
-        printf("Tableau %d\n",$1.decal->valeur);
+       struct quads* newQuads = quadsGen("store_into_tab",$3.result,$1.decal,$1.result);
+       $$.code = quadsConcat($1.code,$3.code,newQuads);
      }
      printf("attribution -> variable = expression\n");
    }
@@ -535,7 +539,7 @@ variable:
 
 
 index_attribution:
-   index_attribution ',' expression
+   index_attribution DIM_SEPARATOR expression
    {
      $$.nb_dim = $1.nb_dim+1;
      struct symbol* symbol_size_dim;

@@ -18,6 +18,15 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		{
 			fprintf(outputFile,"%s: .asciiz %s\n",curseur_tds->nom,curseur_tds->string);
 		}
+		else if(curseur_tds->is_array)
+		{
+			fprintf(outputFile,"%s: .word %d",curseur_tds->nom,curseur_tds->valeur);
+			int i;
+			for(i=0;i<curseur_tds->length;i++)
+			{
+				fprintf(outputFile,",%d",curseur_tds->valeur_tab[i]);
+			}
+		}
 		else
 		{
 			fprintf(outputFile,"%s: .word %d\n",curseur_tds->nom,curseur_tds->valeur);

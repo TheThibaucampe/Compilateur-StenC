@@ -20,6 +20,7 @@ struct symbol{
 		char* string;
 		struct {
 			struct dim* taille_dim;
+			int length;
 			int* valeur_tab;
 		};
 	};
