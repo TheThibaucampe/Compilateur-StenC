@@ -26,4 +26,5 @@ obj/%.o: src/%.c
 	$(CC) -g -o $@ -c $< $(CFLAGS)
 
 clean:
-	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil
+	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil y.output out.s
+	rm -r stenCil.dSYM
