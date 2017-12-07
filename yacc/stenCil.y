@@ -65,6 +65,7 @@
 %token OR
 %token INCR
 %token DECR
+%token DIM_SEPARATOR
 %token <string>STRING
 
 %type <codegen>condition
@@ -90,6 +91,7 @@
 %type <codegen>index_declaration
 %type <codegen>variable_declaration
 
+%left DIM_SEPARATOR
 %left '(' ')'
 %left '!' INCR DECR
 %left '*' '/'
@@ -335,7 +337,7 @@ var_int:
        return -1;
      }
 
-     $$.result = add(&tds,$1.result->nom,false);
+     //$$.result = add(&tds,$1.result->nom,false);
      struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
      $$.code = quadsConcat($3.code,NULL,newQuads);
      $$.type = "int";
@@ -387,7 +389,7 @@ variable_declaration:
 
 
 index_declaration:
-   index_declaration ',' NUMBER	//TODO calcul des expression
+   index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
    {
      add_dim($$.result,$3);
      $$.nb_dim = $1.nb_dim+1;
