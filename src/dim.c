@@ -28,7 +28,7 @@ void add_dim(struct symbol* tab, int taille)
 
 int dim_size(struct symbol* tds, char* tab_name, int dim)
 {
-	struct symbol* tab = lookup(tds,tab_name);
+	struct symbol* tab = lookup_tab(tds,tab_name);
 	if(tab->is_array == 0)
 	{
 		printf("Erreur, %s n'est pas un tableau\n",tab_name);
