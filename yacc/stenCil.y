@@ -504,33 +504,9 @@ var_stencil:
       tmp = add(&tds, $1, false);
      }
 
-     //Verify that the array's size matches stencil definition
-     //-> Check if the dimension matches
-     if ($5 != $8.nb_dim)
-     {
-        printf("Le tableau ne correspond pas à la définition du stencil : Dimensions incorrectes\n");
-        printf("Dimension lue : %d ; Dimension attendue : %d\n", $8.nb_dim, $5);
-        return -1;
-     }
-     //-> Check if the horizontal radius matches stencil definition
-     if (2*$3 + 1 != $8.width)
-     {
-        printf("Le tableau ne correspond pas à la définition du stencil : Rayon incorrect\n");
-        printf("Rayon horizontal lu : %d ; Rayon attendu : %d\n", $8.width, 2*$3 + 1);
-        return -1;
-     }
-     //-> Check if the vertical radius matches stencil definition
-     /*if (2*$3 + 1 != $8.height)
-     {
-        printf("Le tableau ne correspond pas à la définition du stencil : Rayon incorrect\n");
-        printf("Rayon horizontal lu : %d ; Rayon attendu : %d\n", $8.width, 2*$3 + 1);
-        return -1;
-     }*/
+     checkDimsStencil($8.list_dim, $3, $5);
+     tmp->valeur_tab = translateListToTab($8.list_number);     
 
-     //All the previous conditions are ok
-     //tmp->valeur_tab = $8.tab;
-     //tmp->length = $8.len;
-     //TODO : Ajouter les dimensions
      $$.type = "stencil";
      
    }
@@ -641,11 +617,10 @@ list_array:
   {
     //TODO test dimnesion pour verifier la consistance du tableau
   
-    checkDims($1.list_dim,$3.list_dim);
+    checkDims($1.list_dim->suivant,$3.list_dim->suivant);
 
     $$.list_dim = $1.list_dim;
-    $$.list_dim->size = $1.list_dim->size + 1;
-
+    $$.list_dim->size = $3.list_dim->size + 1;
     $$.list_number = concatListNumber($1.list_number,$3.list_number);
 
     printf("list_array -> array ',' list_array\n");
