@@ -429,26 +429,6 @@ variable_declaration:
      printf("variable_declaration -> index_declaration ]\n");
    }
 
-   | index_declaration ']' '=' array
-   {
-     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
-     if(tmp == NULL)
-     {
-       printf("index_declaration: première utilisation de %s sans déclaration\n",$1.result->nom);
-       return -1;
-     }
-
-     if(tmp->constante == true)
-     {
-       printf("Tentative de modification d'une constante\n");
-       return -1;
-     }
- 
-     $1.result->length = $1.decal->valeur;
-     $1.result->valeur_tab = $4.tab;
-     printf("variable_declaration -> index_declaration ]\n");
-   }
   ;
 
 
@@ -547,8 +527,8 @@ var_stencil:
      }*/
 
      //All the previous conditions are ok
-     tmp->valeur_tab = $8.tab;
-     tmp->length = $8.len;
+     //tmp->valeur_tab = $8.tab;
+     //tmp->length = $8.len;
      //TODO : Ajouter les dimensions
      $$.type = "stencil";
      
