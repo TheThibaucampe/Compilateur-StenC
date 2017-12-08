@@ -27,8 +27,6 @@
 		struct quads* code;
 		struct list_quads* truelist;
 		struct list_quads* falselist;
-    int width;
-    int height;
 		int nb_dim;
 		struct symbol* decal;
     char* type;
@@ -37,8 +35,8 @@
   struct{
     int width;
     int height;
-    int pos;
     struct listNumber* list_number;
+    int nb_dim;
   } tab;
 }
 
@@ -98,8 +96,8 @@
 %left DIM_SEPARATOR
 %left '(' ')'
 %left '!' INCR DECR
-%left '*' '/'
-%left '-' '+' '$'
+%left '*' '/' '$'
+%left '-' '+' 
 %left '<' '>' LOWEREQ GREATEREQ
 %left EQUAL NOTEQUAL
 %left AND
@@ -430,6 +428,27 @@ variable_declaration:
      $1.result->valeur_tab =(int*) malloc($1.decal->valeur*sizeof(int));
      printf("variable_declaration -> index_declaration ]\n");
    }
+
+   | index_declaration ']' '=' array
+   {
+     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+
+     if(tmp == NULL)
+     {
+       printf("index_declaration: première utilisation de %s sans déclaration\n",$1.result->nom);
+       return -1;
+     }
+
+     if(tmp->constante == true)
+     {
+       printf("Tentative de modification d'une constante\n");
+       return -1;
+     }
+ 
+     $1.result->length = $1.decal->valeur;
+     $1.result->valeur_tab = $4.tab;
+     printf("variable_declaration -> index_declaration ]\n");
+   }
   ;
 
 
@@ -489,33 +508,50 @@ var_stencil:
      printf("var_stencil ->ID\n");
      //XXX code*/
      $$.type = "stencil";
-     $$.height = $3;
-     $$.width = $5;
    }
 
    | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
    {
-     struct symbol* tmp = lookup(tds,$1);
+     struct symbol* tmp = lookup_tab(tds,$1);
 
      if(tmp != NULL)
      {
        printf("Redéclaration de %s\n",$1);
        return -1;
+     } else
+     {
+      tmp = add(&tds, $1, false);
      }
 
      //Verify that the array's size matches stencil definition
-     if (($3 != $8.height) || (2*$5 + 1 != $8.width))
+     //-> Check if the dimension matches
+     if ($5 != $8.nb_dim)
      {
-        printf("Le tableau ne correspond pas à la définition du stencil");
+        printf("Le tableau ne correspond pas à la définition du stencil : Dimensions incorrectes\n");
+        printf("Dimension lue : %d ; Dimension attendue : %d\n", $8.nb_dim, $5);
         return -1;
      }
+     //-> Check if the horizontal radius matches stencil definition
+     if (2*$3 + 1 != $8.width)
+     {
+        printf("Le tableau ne correspond pas à la définition du stencil : Rayon incorrect\n");
+        printf("Rayon horizontal lu : %d ; Rayon attendu : %d\n", $8.width, 2*$3 + 1);
+        return -1;
+     }
+     //-> Check if the vertical radius matches stencil definition
+     /*if (2*$3 + 1 != $8.height)
+     {
+        printf("Le tableau ne correspond pas à la définition du stencil : Rayon incorrect\n");
+        printf("Rayon horizontal lu : %d ; Rayon attendu : %d\n", $8.width, 2*$3 + 1);
+        return -1;
+     }*/
 
-     /*$$.result = add(&tds,$1,false);
-     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
-     $$.code = quadsConcat($3.code,NULL,newQuads);*/
+     //All the previous conditions are ok
+     tmp->valeur_tab = $8.tab;
+     tmp->length = $8.len;
+     //TODO : Ajouter les dimensions
      $$.type = "stencil";
-     $$.height = $3;
-     $$.width = $5;
+     
    }
 ;
 
@@ -566,8 +602,6 @@ variable_attribution:
     // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
 
      $$ = $1;
- 
-
      printf("variable -> ID[expression]\n");
    }
   ;
@@ -660,7 +694,6 @@ list_number:
     $$.list_number = addNumber(tmp,$1);
     $$.width = 1;
     $$.height = 0;
-    $$.pos = 1;
     printf("list_array -> NUMBER (%d)\n", $1);
 
   }
@@ -670,7 +703,6 @@ list_number:
      //TODO
     $$.list_number = addNumber($1.list_number,$3);
     $$.width = $1.width + 1;
-    $$.pos = $1.pos + 1;
     printf("list_array -> NUMBER ',' list_array\n");
  
   }

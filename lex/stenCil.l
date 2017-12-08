@@ -7,9 +7,7 @@
 
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 NUMBER "0"|([1-9][0-9]*)|("0b"[0-1]+)|("0"[0-7]+)|("0x"[0-9A-F]+)
-OPERATOR "+"|"-"|"*"|"/"|"="
-BOOL_OPERATOR "<"|">"|"<="|">="|"=="|"!="|"&&"|"!"|"||"
-UNARY_POSTFIX_OPERATOR "++"|"--"
+OPERATOR "+"|"-"|"*"|"/"|"="|"$"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"#"|","|";"
 STRING \"[^\"]*\"
 PREPROC ("#define "[a-zA-Z][0-9a-zA-Z_]*" "[0-9a-zA-Z_]+)|("#include "(\<[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\>)|(\"[a-zA-Z][0-9a-zA-Z_]+\.[a-zA-Z]+\"))
