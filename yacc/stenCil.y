@@ -34,8 +34,8 @@
 
   struct{
     int width;
-    int height;
     struct listNumber* list_number;
+    struct dim* list_dim;
     int nb_dim;
   } tab;
 }
@@ -351,6 +351,7 @@ var_int:
        exit(-1);
      }
 
+     checkDims($1.result->taille_dim,$3.list_dim->suivant);
      $$.result->valeur_tab = translateListToTab($3.list_number);
    }
 ;
@@ -630,7 +631,8 @@ array:
   '{' list_array '}'
   {
     $$ = $2;
-    $$.height = $2.height + 1;
+    $$.list_dim = appendToListDim($2.list_dim,1);
+    
     printf("array -> list_array\n");
   }
 
@@ -638,11 +640,14 @@ list_array:
   array ',' list_array
   {
     //TODO test dimnesion pour verifier la consistance du tableau
+  
+    checkDims($1.list_dim,$3.list_dim);
+
+    $$.list_dim = $1.list_dim;
+    $$.list_dim->size = $1.list_dim->size + 1;
 
     $$.list_number = concatListNumber($1.list_number,$3.list_number);
 
-    $$.width = $3.width + 1;
-    $$.height = $3.height + 1;
     printf("list_array -> array ',' list_array\n");
   }
 
@@ -651,7 +656,6 @@ list_array:
     //TODO
 
     $$ = $1;
-    $$.height = 1;
     printf("list_array -> array\n");
   }
 
@@ -671,9 +675,9 @@ list_number:
     //$$.code = NULL; //TODO load imediate
     struct listNumber* tmp = malloc(sizeof(struct listNumber));
     tmp->debut = NULL;
+    $$.list_dim = appendToListDim(NULL,1);
     $$.list_number = addNumber(tmp,$1);
     $$.width = 1;
-    $$.height = 0;
     printf("list_array -> NUMBER (%d)\n", $1);
 
   }
@@ -682,7 +686,8 @@ list_number:
   {
      //TODO
     $$.list_number = addNumber($1.list_number,$3);
-    $$.width = $1.width + 1;
+    $$.list_dim = $1.list_dim;
+    $$.list_dim->size = $1.list_dim->size + 1;
     printf("list_array -> NUMBER ',' list_array\n");
  
   }
