@@ -92,6 +92,7 @@
 %type <codegen>index_declaration
 %type <codegen>variable_declaration
 %type <codegen>variable
+%type <codegen>main
 
 %left DIM_SEPARATOR
 %left '(' ')'
@@ -109,13 +110,22 @@
 %%
 
 axiom:
-    line
+    main
     {
       quadsFinal = $1.code;
       printf("Match :-) !\n");
       return 0;
     }
 ;
+
+
+main:
+    INT MAIN '(' ')' bloc
+    {
+      $$=$5;
+    }
+
+
 
 line:
     line statement
