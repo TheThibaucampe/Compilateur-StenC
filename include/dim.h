@@ -14,5 +14,6 @@ void add_dim(struct symbol*, int);
 int dim_size(struct symbol*, char*, int);
 struct dim* appendToListDim(struct dim*, int);
 int checkDims(struct dim*, struct dim*);
+int checkDimsStencil(struct dim*,int, int) ;
 
 #endif

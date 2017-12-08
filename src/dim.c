@@ -73,7 +73,7 @@ int checkDims(struct dim* d1, struct dim* d2)
 	{
 		if(curseur1->size != curseur2->size)
 		{
-			printf("Erreur dimension\n");
+			printf("Erreur de largeur : L1 = %d, L2 = %d\n", curseur1->size, curseur2->size);
 			exit(-1);
 		}
 
@@ -87,5 +87,28 @@ int checkDims(struct dim* d1, struct dim* d2)
 		exit(-1);
 	}
 
+	return 1;
+}
+
+
+int checkDimsStencil(struct dim* list_dim,int rayon, int nb_dim)
+{
+	struct dim* curseur = list_dim->suivant;
+	int count = 0;
+	while (curseur != NULL && count <= nb_dim)
+	{
+		if (curseur->size != 2*rayon+1)
+		{
+			printf("Condition de rayon non respectée\n");
+			exit(-1);
+		}
+		count++;
+		curseur = curseur->suivant;
+	}
+	if (count != nb_dim)
+	{
+		printf("Mauvaise dimension attendue\n");
+		exit(-1);
+	}
 	return 1;
 }
