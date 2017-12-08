@@ -6,6 +6,7 @@
   #include "list_quads.h"
   #include "tradCode.h"
   #include "dim.h"
+  #include "listNumber.h"
 
   void yyerror(char*);
   int yylex();
@@ -36,7 +37,8 @@
   struct{
     int width;
     int height;
-    int** tab;
+    int pos;
+    struct listNumber* list_number;
   } tab;
 }
 
@@ -86,6 +88,7 @@
 %type <value>tag_else
 %type <tab>array
 %type <tab>list_array 
+%type <tab>list_number
 %type <codegen>variable_attribution
 %type <codegen>index_attribution
 %type <codegen>index_declaration
@@ -339,6 +342,18 @@ var_int:
      $$.type = "int";
 
      printf("var_int -> variable = expression\n");
+   }
+
+   | variable_declaration '=' array
+   {
+     $$ = $1;
+     if($1.decal == NULL)
+     {
+       printf("Erreur, mise de tableau dans variable int\n");
+       exit(-1);
+     }
+
+     $$.result->valeur_tab = translateListToTab($3.list_number);
    }
 ;
 
@@ -600,36 +615,20 @@ if($$.result == NULL)
 array:
   '{' list_array '}'
   {
+    $$ = $2;
     $$.height = $2.height + 1;
     printf("array -> list_array\n");
   }
 
 list_array:
-  NUMBER
+  array ',' list_array
   {
-    //$$.result = newtemp(&tds);
-    //$$.result->valeur = $1;
+    //TODO test dimnesion pour verifier la consistance du tableau
 
-    //$$.code = NULL; //TODO load imediate
-    $$.width = 1;
-    $$.height = 0;
-    printf("list_array -> NUMBER (%d)\n", $1);
-  }
+    $$.list_number = concatListNumber($1.list_number,$3.list_number);
 
-  | NUMBER ',' list_array
-  {
-    //TODO
-
-    $$.width = $$.width + 1;
-    printf("list_array -> NUMBER ',' list_array\n");
-  }
-
-  | array ',' list_array
-  {
-    //TODO
-
-    $$.width = $$.width + 1;
-    $$.height = $$.height + 1;
+    $$.width = $3.width + 1;
+    $$.height = $3.height + 1;
     printf("list_array -> array ',' list_array\n");
   }
 
@@ -637,8 +636,43 @@ list_array:
   {
     //TODO
 
+    $$ = $1;
     $$.height = 1;
     printf("list_array -> array\n");
+  }
+
+  | list_number
+  {
+    $$=$1;
+  }
+ ;
+
+
+list_number:
+  NUMBER
+  {
+    //$$.result = newtemp(&tds);
+    //$$.result->valeur = $1;
+
+    //$$.code = NULL; //TODO load imediate
+    struct listNumber* tmp = malloc(sizeof(struct listNumber));
+    tmp->debut = NULL;
+    $$.list_number = addNumber(tmp,$1);
+    $$.width = 1;
+    $$.height = 0;
+    $$.pos = 1;
+    printf("list_array -> NUMBER (%d)\n", $1);
+
+  }
+
+  | list_number ',' NUMBER
+  {
+     //TODO
+    $$.list_number = addNumber($1.list_number,$3);
+    $$.width = $1.width + 1;
+    $$.pos = $1.pos + 1;
+    printf("list_array -> NUMBER ',' list_array\n");
+ 
   }
 
 bloc:
