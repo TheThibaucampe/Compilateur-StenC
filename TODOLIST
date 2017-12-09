@@ -23,3 +23,4 @@
 -remaniement de la TDS
 -moins unaire verifier
 -factoriser regle redondante a cause du type
+-return
