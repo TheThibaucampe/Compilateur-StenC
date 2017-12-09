@@ -7,4 +7,4 @@
 int total_element(int, int);
 int decalage(struct dim*, int, int, int);
 
-#endif __STENCIL_H__
+#endif
