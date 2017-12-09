@@ -283,6 +283,11 @@ code_line:
       struct quads* newQuads = quadsGen("printi",NULL,NULL,$3.result);
       $$.code = quadsConcat($3.code,NULL,newQuads);
     }
+
+    | expression
+    {
+      $$=$1;
+    }
   ;
 
 declaration:
