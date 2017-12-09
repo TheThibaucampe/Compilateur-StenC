@@ -827,14 +827,24 @@ expression:
       printf("expression -> NUMBER (%d)\n", $1);
     }
 
-  | STENC
-    {
-      $$.result = newtemp(&tds);
-      //TODO
 
-      $$.code = NULL; //TODO load imediate
-      printf("expression -> STENC\n");
+   | IDENTIFIER '$' variable
+    {
+      struct symbol* stencil = lookup(tds,$1);
+      //TODO test si stencil
+
+      $$.result = newtemp(&tds);
+      $$.result->is_array = 1;
+      $$.code = $3.code;
+
+
+      printf("expression -> ID $ variable\n");
     }
+
+
+
+
+
   ;
 
 condition:  //condition booléenne
