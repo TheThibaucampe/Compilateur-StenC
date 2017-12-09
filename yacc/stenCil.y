@@ -832,9 +832,6 @@ expression:
       struct symbol* tmp5 = newtemp(&tds);
       tmp5->valeur = 0;
 
-
-	printf("======++>%d\n",stencil->nb_dim);
-
       for(i=0;i<nb_element;i++)
       {
         struct symbol* shift = newtemp(&tds);
@@ -860,10 +857,43 @@ expression:
       printf("expression -> ID $ index_attribution ]\n");
     }
 
+    | index_attribution ']' '$' IDENTIFIER
+    {
+      struct symbol* stencil = lookup(tds,$4);
+      //TODO test si stencil
 
+      int i;
+      int nb_element = total_element(stencil->radius,stencil->nb_dim);
+      struct symbol* tmp1 = newtemp(&tds);
+      struct symbol* tmp2 = newtemp(&tds);
+      struct symbol* tmp3 = newtemp(&tds);
+      struct symbol* tmp4 = newtemp(&tds);
+      struct symbol* tmp5 = newtemp(&tds);
+      tmp5->valeur = 0;
 
+      for(i=0;i<nb_element;i++)
+      {
+        struct symbol* shift = newtemp(&tds);
+        shift->valeur = decalage($1.result->taille_dim,stencil->radius,stencil->nb_dim,i);
 
+        struct symbol* iterator = newtemp(&tds);
+        iterator->valeur = i;
 
+        struct quads* newQuads1 = quadsGen("addu",shift,$1.decal,tmp1);
+        struct quads* newQuads2 = quadsGen("load_from_tab",$1.result,tmp1,tmp2);
+        struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
+        struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
+        struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
+
+        $$.code = quadsConcat($3.code,newQuads1,newQuads2);
+        $$.code = quadsConcat($$.code,newQuads3,newQuads4);
+        $$.code = quadsConcat($$.code,newQuads5,NULL);
+      }
+
+      $$.result = tmp5;
+
+      printf("expression -> index_attribution ] $ ID\n");
+    }
   ;
 
 condition:  //condition booléenne
