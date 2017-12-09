@@ -6,7 +6,7 @@
 %}
 
 IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
-NUMBER "0"|([1-9][0-9]*)|("0b"[0-1]+)|("0"[0-7]+)|("0x"[0-9A-F]+)
+NUMBER ("-")?("0"|([1-9][0-9]*)|("0b"[0-1]+)|("0"[0-7]+)|("0x"[0-9A-F]+))
 OPERATOR "+"|"-"|"*"|"/"|"="|"$"
 PUNCTUATION "["|"]"|"("|")"|"{"|"}"|"#"|","|";"
 STRING \"[^\"]*\"
@@ -40,12 +40,12 @@ SPACES \n|\t|" "
 "++"			{return INCR;}
 "--"			{return DECR;}
 			
+{NUMBER}		{yylval.value =  convert(yytext); return NUMBER;}
 {OPERATOR}		{return yytext[0];}
 "]"{SPACES}*"["	{return DIM_SEPARATOR;}
 {PUNCTUATION}	{return yytext[0];}
 
 {IDENTIFIER}	{yylval.string = strdup(yytext); return IDENTIFIER;}
-{NUMBER}		{yylval.value = convert(yytext); return NUMBER;}
 {STRING}		{yylval.string = strdup(yytext); return STRING;}
 
 .           	{ printf("[Lex] Unknown lexical unit: %s\n", yytext); }
