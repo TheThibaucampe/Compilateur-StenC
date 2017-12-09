@@ -7,6 +7,7 @@
   #include "tradCode.h"
   #include "dim.h"
   #include "listNumber.h"
+  #include "stencil.h"
 
   void yyerror(char*);
   int yylex();
@@ -486,22 +487,7 @@ list_var_stencil:
   ;
 
 var_stencil:
-   IDENTIFIER '{' NUMBER ',' NUMBER '}'
-   {
-     struct symbol* tmp = lookup(tds,$1);
-
-     if(tmp != NULL)
-     {
-       printf("Redéclaration de %s\n",$1);
-       return -1;
-     }
-     /*$$.result = add(&tds, $1, false);
-     printf("var_stencil ->ID\n");
-     //XXX code*/
-     $$.type = "stencil";
-   }
-
-   | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
+   IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
    {
      struct symbol* tmp = lookup_tab(tds,$1);
 
@@ -511,13 +497,17 @@ var_stencil:
        return -1;
      } else
      {
-      tmp = add(&tds, $1, false);
+      $$.result = add(&tds, $1, false);
      }
 
      checkDimsStencil($8.list_dim, $3, $5);
-     tmp->valeur_tab = translateListToTab($8.list_number);     
+     $$.result->valeur_tab = translateListToTab($8.list_number); 
+     $$.result->length = $8.list_number->taille;
 
      $$.type = "stencil";
+     $$.result->is_array = true;
+     $$.result->radius = $3;
+     $$.result->nb_dim = $5;
      
    }
 ;
@@ -828,17 +818,46 @@ expression:
     }
 
 
-   | IDENTIFIER '$' variable
+   | IDENTIFIER '$' index_attribution ']'
     {
       struct symbol* stencil = lookup(tds,$1);
       //TODO test si stencil
 
-      $$.result = newtemp(&tds);
-      $$.result->is_array = 1;
-      $$.code = $3.code;
+      int i;
+      int nb_element = total_element(stencil->radius,stencil->nb_dim);
+      struct symbol* tmp1 = newtemp(&tds);
+      struct symbol* tmp2 = newtemp(&tds);
+      struct symbol* tmp3 = newtemp(&tds);
+      struct symbol* tmp4 = newtemp(&tds);
+      struct symbol* tmp5 = newtemp(&tds);
+      tmp5->valeur = 0;
 
 
-      printf("expression -> ID $ variable\n");
+	printf("======++>%d\n",stencil->nb_dim);
+
+      for(i=0;i<nb_element;i++)
+      {
+        struct symbol* shift = newtemp(&tds);
+        shift->valeur = decalage($3.result->taille_dim,stencil->radius,stencil->nb_dim,i);
+
+        struct symbol* iterator = newtemp(&tds);
+        iterator->valeur = i;
+
+        struct quads* newQuads1 = quadsGen("addu",shift,$3.decal,tmp1);
+        struct quads* newQuads2 = quadsGen("load_from_tab",$3.result,tmp1,tmp2);
+        struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
+        struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
+        struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
+
+        $$.code = quadsConcat($3.code,newQuads1,newQuads2);
+        $$.code = quadsConcat($$.code,newQuads3,newQuads4);
+        $$.code = quadsConcat($$.code,newQuads5,NULL);
+      }
+
+
+      $$.result = tmp5;
+
+      printf("expression -> ID $ index_attribution ]\n");
     }
 
 
