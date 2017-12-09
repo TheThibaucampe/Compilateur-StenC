@@ -1,0 +1,26 @@
+============+THIBAUT
+
+
+-tests
+-enum error
+-fonction error
+-commentaire
+-indentation/rendre code jolie
+-free
+-option debug
+-commutativité op stencil
+
+
+===========VICTOR
+
+
+-factoristion du code
+-enum is_
+-controle de type
+-enum type
+-mise du champ type dans tds
+-verification des regle (passage des attributs)
+-remaniement des attribut de regles
+-remaniement de la TDS
+-moins unaire verifier
+-factoriser regle redondante a cause du type
