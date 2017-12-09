@@ -885,7 +885,7 @@ expression:
         struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
         struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
 
-        $$.code = quadsConcat($3.code,newQuads1,newQuads2);
+        $$.code = quadsConcat($1.code,newQuads1,newQuads2);
         $$.code = quadsConcat($$.code,newQuads3,newQuads4);
         $$.code = quadsConcat($$.code,newQuads5,NULL);
       }
