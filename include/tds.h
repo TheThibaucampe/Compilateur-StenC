@@ -23,6 +23,13 @@ struct symbol{
 			int length;
 			int* valeur_tab;
 		};
+		struct {
+                        struct dim* taille_dim_stenc;
+                        int length_stenc;
+                        int* valeur_tab_stenc;
+                        int radius;
+                        int nb_dim;
+		};
 	};
 	struct symbol* suivant;
 };
