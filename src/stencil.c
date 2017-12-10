@@ -22,8 +22,8 @@ int decalage(struct dim* dims, int radius, int nb_dim, int r)
 	while (current_dim > 0)
 	{
 		result *= curseur->size;
-    tmp %= total_element(radius, current_dim);
-    current_dim--;
+    	tmp %= total_element(radius, current_dim);
+    	current_dim--;
 
 		if(current_dim == 0)
 		{
@@ -32,7 +32,7 @@ int decalage(struct dim* dims, int radius, int nb_dim, int r)
 		{
 			result += ((tmp / total_element(radius, current_dim)) - radius);
 		}
-    curseur = curseur->next;
+    	curseur = curseur->next;
 	}
 	return result;
 }
