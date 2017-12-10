@@ -157,7 +157,7 @@ line:
   | statement
   {
     $$ = $1;
-    -printf("line -> statement\n");
+    printf("line -> statement\n");
   }
 ;
 
@@ -992,6 +992,12 @@ int main() {
   quadsPrint(quadsFinal);
 
   tradCodeFinal("out.s",quadsFinal,tds);
+
+  //Free
+
+
+
+  //lex_free();
 
   return 0;
 }
