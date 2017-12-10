@@ -1,9 +1,9 @@
 #include "util.h"
 
 extern struct symbol* tds;
-extern struct quads* code;
+extern struct quads* quadsFinal;
 
-void print_error(int type, char* message)
+/*void print_error(int type, char* message)
 {
 	switch(type)
 	{
@@ -11,13 +11,13 @@ void print_error(int type, char* message)
 		default:
 			return;
 	}
-}
+}*/
 
 void free_tds(struct symbol* tds)
 {
 	struct symbol* current_symbol = tds;
 	struct symbol* Bfree_symbol= current_symbol;
-	while (current != NULL)
+	while (current_symbol != NULL)
 	{
 		free(current_symbol->name);
 		if (current_symbol->is_array)
@@ -29,7 +29,7 @@ void free_tds(struct symbol* tds)
 				while (current_dim != NULL)
 				{
 					current_dim = current_dim->next;
-					free(Bfre_dim);
+					free(Bfree_dim);
 					Bfree_dim = current_dim;
 				}
 				free(current_symbol->value_tab_stenc);
@@ -76,7 +76,7 @@ void free_code(struct quads* quad)
 	return;
 }
 
-void free_list_quad(struct list_quads* lq);
+void free_list_quad(struct list_quads* lq)
 {
 	struct list_quads* current = lq;
 	struct list_quads* Bfree = current;
@@ -90,10 +90,10 @@ void free_list_quad(struct list_quads* lq);
 	return;
 }
 
-void free_listNumber(struct listNumber* lN);
+void free_listNumber(struct listNumber* lN)
 {
-	struct listNumber* current = lN->begin;
-	struct listNumber* Bfree = current;
+	struct number* current = lN->begin;
+	struct number* Bfree = current;
 	while (current != NULL)
 	{
 		current = current->next;
@@ -106,6 +106,6 @@ void free_listNumber(struct listNumber* lN);
 
 void free_all()
 {
-	free_code(code);
+	free_code(quadsFinal);
 	free_tds(tds);
 }
