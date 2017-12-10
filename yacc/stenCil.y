@@ -36,7 +36,6 @@
 				int nb_dim;
 				struct symbol* decal;
 			};
-		//XXX possibilité de deplacer le rsult dans l'union et de mettre un symbol dans avec nb_dim
 		};
 	} codegen;
 
@@ -117,7 +116,7 @@
 %%
 
 axiom:
-    main
+  main
     {
       quadsFinal = $1.code;
       printf("Match :-) !\n");
@@ -127,18 +126,18 @@ axiom:
 
 
 main:
-    INT MAIN '(' ')' bloc
-    {
-      $$=$5;
-    }
+  INT MAIN '(' ')' bloc
+  {
+    $$=$5;
+  }
 
 
 bloc:
-   '{' line '}'
-   {
-      $$ = $2;
-     printf("bloc -> { line }\n");
-   }
+  '{' line '}'
+  {
+    $$ = $2;
+    printf("bloc -> { line }\n");
+  }
 
  /*  | statement
    {
@@ -149,477 +148,454 @@ bloc:
 
 
 line:
-    line statement
-    {
-      $$.code = quadsConcat($1.code,$2.code,NULL);
-      //XXX Code?
-      printf("line -> statement list line\n");
-    }
+  line statement
+  {
+    $$.code = quadsConcat($1.code,$2.code,NULL);
+    printf("line -> statement list line\n");
+  }
 
-    | statement
-    {
-      $$ = $1;
-      printf("line -> statement\n");
-    }
-
-   ;
+  | statement
+  {
+    $$ = $1;
+    -printf("line -> statement\n");
+  }
+;
 
 
 statement:
-    code_line ';'
-    {
-      $$=$1;
-      printf("statement -> code_line ;\n");
-    }
+  code_line ';'
+  {
+    $$=$1;
+    printf("statement -> code_line ;\n");
+  }
 
-    | WHILE tag condition tag bloc
-    {
-      //Begin
-      
-      //Concaténation de la truelist de la condition
-      struct symbol* tmp = newLabel(&tds,$4);
-      $$.truelist = complete_list_quads($3.truelist, tmp);
-     
-      //Ajout du goto begin
-      tmp = newLabel(&tds,$2);
-      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
-      $$.code = quadsConcat($3.code,$5.code ,newQuads);
+  | WHILE tag condition tag bloc
+  {
+    //Begin
 
-      //Concaténation de la falselist de la condition
-      tmp = newLabel(&tds,nextquad);
-      $$.falselist = complete_list_quads($3.falselist, tmp);
-    }
+    //Concaténation de la truelist de la condition
+    struct symbol* tmp = newLabel(&tds,$4);
+    $$.truelist = complete_list_quads($3.truelist, tmp);
 
-    | IF condition tag bloc
-    {
-      //Concaténation de la truelist de la condition
-      struct symbol* tmp = newLabel(&tds,$3);
-      $$.truelist = complete_list_quads($2.truelist, tmp);
-     
-      //Concaténation du code de bloc
-      $$.code = quadsConcat($2.code,$4.code,NULL);
+    //Ajout du goto begin
+    tmp = newLabel(&tds,$2);
+    struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
+    $$.code = quadsConcat($3.code,$5.code ,newQuads);
 
-      //Concaténation de la falselist de la condition
-      tmp = newLabel(&tds,nextquad);
-      $$.falselist = complete_list_quads($2.falselist, tmp);
+    //Concaténation de la falselist de la condition
+    tmp = newLabel(&tds,nextquad);
+    $$.falselist = complete_list_quads($3.falselist, tmp);
+  }
 
-    }
+  | IF condition tag bloc
+  {
+    //Concaténation de la truelist de la condition
+    struct symbol* tmp = newLabel(&tds,$3);
+    $$.truelist = complete_list_quads($2.truelist, tmp);
 
-    | IF condition tag bloc ELSE tag_else bloc
-    {
-      //Concaténation de la truelist de la condition
-      struct symbol* tmp = newLabel(&tds,$3);
-      $$.truelist = complete_list_quads($2.truelist, tmp);
-     
-      tmp = newLabel(&tds,nextquad);
-      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
-      nextquad--;
-      struct quads* codeTmp = quadsConcat($2.code,$4.code ,newQuads);
+    //Concaténation du code de bloc
+    $$.code = quadsConcat($2.code,$4.code,NULL);
 
-      //Concaténation de la falselist de la condition
-      tmp = newLabel(&tds,$6);
-      $$.falselist = complete_list_quads($2.falselist, tmp);
+    //Concaténation de la falselist de la condition
+    tmp = newLabel(&tds,nextquad);
+    $$.falselist = complete_list_quads($2.falselist, tmp);
+  }
 
-      $$.code = quadsConcat(codeTmp,$7.code,NULL);
-    }
+  | IF condition tag bloc ELSE tag_else bloc
+  {
+    //Concaténation de la truelist de la condition
+    struct symbol* tmp = newLabel(&tds,$3);
+    $$.truelist = complete_list_quads($2.truelist, tmp);
 
-    | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
-	//TODO avancement for pourrai etre un code line??
-      {
+    //Ajout d'un goto
+    tmp = newLabel(&tds,nextquad);
+    struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
+    nextquad--;
 
-      nextquad+=($10-$8);
+    //Concaténation des blocs
+    struct quads* codeTmp = quadsConcat($2.code,$4.code ,newQuads);
 
-      //Begin
-      
-      //Concaténation de la truelist de la condition
-      struct symbol* tmp = newLabel(&tds,$13);
-      $$.truelist = complete_list_quads($6.truelist, tmp);
-     
+    //Concaténation de la falselist de la condition
+    tmp = newLabel(&tds,$6);
+    $$.falselist = complete_list_quads($2.falselist, tmp);
+    $$.code = quadsConcat(codeTmp,$7.code,NULL);
+  }
 
-      struct quads* code_tmp = quadsConcat($3.code,$6.code,$14.code);
-      
+  | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
+  //TODO avancement for pourrai etre un code line??
+  {
+    //Nouveau calcul du nextquad
+    nextquad+=($10-$8);
 
-      //Ajout du goto begin
-      tmp = newLabel(&tds,$5);
-      struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
-      code_tmp = quadsConcat(code_tmp,$9.code ,newQuads);
+    //Concaténation de la truelist de la condition
+    struct symbol* tmp = newLabel(&tds,$13);
+    $$.truelist = complete_list_quads($6.truelist, tmp);
+    struct quads* code_tmp = quadsConcat($3.code,$6.code,$14.code);
 
-      //Concaténation de la falselist de la condition
-      tmp = newLabel(&tds,nextquad);
-      $$.falselist = complete_list_quads($6.falselist, tmp);
+    //Ajout du goto begin
+    tmp = newLabel(&tds,$5);
+    struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
+    code_tmp = quadsConcat(code_tmp,$9.code ,newQuads);
 
+    //Concaténation de la falselist de la condition
+    tmp = newLabel(&tds,nextquad);
+    $$.falselist = complete_list_quads($6.falselist, tmp);
+    
+    $$.code = code_tmp;
 
-      $$.code=code_tmp;
-
-        printf("statement -> for\n");
-      }
-  	
-  ;
-
+    printf("statement -> for\n");
+  }
+;
 
 avancement_for:
-    attribution
-    {
-      $$=$1;
-      printf("avencement_for -> attribution\n");
-    }
+  attribution
+  {
+    $$=$1;
+    printf("avencement_for -> attribution\n");
+  }
 
-    | expression
-    {
-      $$=$1;
-      printf("avencement_for -> expression\n");
-    }
- ;
-
+  | expression
+  {
+    $$=$1;
+    printf("avencement_for -> expression\n");
+  }
+;
 
 
 tag:
-    {
-      $$ = nextquad;
-      printf("Tag\n");
-    }
-  ;
+  {
+    $$ = nextquad;
+    printf("Tag\n");
+  }
+;
 
 tag_else:
-    {
-      nextquad++;
-      $$ = nextquad;
-      printf("Tag else\n");
-    }
-  ;
+  {
+    nextquad++;
+    $$ = nextquad;
+    printf("Tag else\n");
+  }
+;
 
 code_line:
-    attribution
-    {
-      $$=$1;
-      printf("code_ligne -> attribution\n");
-    }
+  attribution
+  {
+    $$=$1;
+    printf("code_ligne -> attribution\n");
+  }
 
-    | declaration
-    {
-       $$ = $1;
-       printf("code_ligne -> declaration\n");
-    }
+  | declaration
+  {
+    $$ = $1;
+    printf("code_ligne -> declaration\n");
+  }
 
-    | PRINTF '(' STRING ')'
-    {
-      struct symbol* tmp = newtemp(&tds);
-      tmp->string = $3;
-      tmp->type = STRING;
-      $$.code = quadsGen("printf",NULL,NULL,tmp);
-    }
+  | PRINTF '(' STRING ')'
+  {
+    struct symbol* tmp = newtemp(&tds);
+    tmp->string = $3;
+    tmp->type = STRING;
+    $$.code = quadsGen("printf",NULL,NULL,tmp);
+    printf("code_ligne -> PRINTF '(' STRING ')'\n");
+  }
 
-    | PRINTI '(' variable ')'
-    {
-      struct quads* newQuads = quadsGen("printi",NULL,NULL,$3.result);
-      $$.code = quadsConcat($3.code,NULL,newQuads);
-    }
+  | PRINTI '(' variable ')'
+  {
+    struct quads* newQuads = quadsGen("printi",NULL,NULL,$3.result);
+    $$.code = quadsConcat($3.code,NULL,newQuads);
+    printf("code_ligne -> PRINTI '(' variable ')'\n");
+  }
 
-    | expression
-    {
-      $$=$1;
-    }
+  | expression
+  {
+    $$=$1;
+    printf("code_ligne -> expression\n");
+  }
 
-    | RETURN expression
-    {
-      $$=$2;
-    }
-  ;
+  | RETURN expression
+  {
+    $$=$2;
+    printf("code_ligne -> RETURN expression\n");
+  }
+;
 
 declaration:
-   INT list_var_int
-   {
-     $$=$2;
-     printf("declaration -> INT list_var_int\n");
-   }
+  INT list_var_int
+  {
+    $$=$2;
+    printf("declaration -> INT list_var_int\n");
+  }
 
-   | STENCIL list_var_stencil
-   {
-     $$=$2;
-     printf("declaration -> STENCIL list_var_stencil\n");
-   }
-   ;
-
+  | STENCIL list_var_stencil
+  {
+    $$=$2;
+    printf("declaration -> STENCIL list_var_stencil\n");
+  }
+;
 
 list_var_int:
-   var_int ',' list_var_int
-   {
-     $$.code = quadsConcat($1.code,$3.code,NULL);
-     printf("list_var_int -> list_var_int var_int\n");
-   }
+  var_int ',' list_var_int
+  {
+    $$.code = quadsConcat($1.code,$3.code,NULL);
+    printf("list_var_int -> list_var_int var_int\n");
+  }
 
-   | var_int
-   {
-     $$=$1;
-     printf("list_var_int -> var_int\n");
-   }
-  ;
+  | var_int
+  {
+    $$=$1;
+    printf("list_var_int -> var_int\n");
+}
+;
 
 var_int:
-   variable_declaration
-   {
-     $$=$1;
-     printf("var_int -> variable_declaration\n");
-   }
+  variable_declaration
+  {
+    $$=$1;
+    printf("var_int -> variable_declaration\n");
+  }
 
-   | variable_declaration '=' expression
-   {
-     $$=$1;
-     if($1.decal != NULL)
-     {
-       printf("Erreur, %s est un tableau, impossible de mettre un int\n",$1.result->nom);
-     }
-     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
-     $$.code = quadsConcat($3.code,NULL,newQuads);
+  | variable_declaration '=' expression
+  {
+    $$=$1;
+    if($1.decal != NULL)
+    {
+      printf("Erreur, %s est un tableau, impossible de mettre un int\n",$1.result->name);
+    }
+    struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
+    $$.code = quadsConcat($3.code,NULL,newQuads);
 
-     printf("var_int -> variable = expression\n");
-   }
+    printf("var_int -> variable = expression\n");
+  }
 
-   | variable_declaration '=' array
-   {
-     $$ = $1;
-     if($1.decal == NULL)
-     {
-       printf("Erreur, mise de tableau dans variable int\n");
-       exit(-1);
-     }
-
-     checkDims($1.result->taille_dim,$3.list_dim->suivant);
-     $$.result->valeur_tab = translateListToTab($3.list_number);
-   }
+  | variable_declaration '=' array
+  {
+    $$ = $1;
+    if($1.decal == NULL)
+    {
+      printf("Erreur, mise de tableau dans variable int\n");
+      exit(-1);
+    }
+    checkDims($1.result->size_dim,$3.list_dim->next);
+    $$.result->array_value = translateListToTab($3.list_number);
+  }
 ;
 
 
 list_var_stencil:
-   var_stencil ',' list_var_stencil
-   {
-     $$.code = quadsConcat($1.code,$3.code,NULL);
-     //XXX result?
-     printf("list_var_stencil -> list_var_stencil var_stencil\n");
-   }
+  var_stencil ',' list_var_stencil
+  {
+    $$.code = quadsConcat($1.code,$3.code,NULL);
+    printf("list_var_stencil -> list_var_stencil var_stencil\n");
+  }
 
-   | var_stencil
-   {
-     $$=$1;
-     printf("list_var_stencil -> var_stencil\n");
-   }
-  ;
+  | var_stencil
+  {
+    $$=$1;
+    printf("list_var_stencil -> var_stencil\n");
+  }
+;
 
 var_stencil:
-   IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
-   {
-     struct symbol* tmp = lookup(tds,$1);
+  IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
+  {
+    struct symbol* tmp = lookup(tds,$1);
 
-     if(tmp != NULL)
-     {
-       printf("Redéclaration de %s\n",$1);
-       exit(-1);
-     }
+    if(tmp != NULL)
+    {
+      printf("Redéclaration de %s\n",$1);
+      exit(-1);
+    }
 
-     checkDimsStencil($8.list_dim, $3, $5);
+    checkDimsStencil($8.list_dim, $3, $5);
 
-     $$.result = add(&tds, $1, false);
-     $$.result->type = STENCIL_TYPE;
+    $$.result = add(&tds, $1, false);
+    $$.result->type = STENCIL_TYPE;
 
-     $$.result->valeur_tab = translateListToTab($8.list_number); 
-     $$.result->length = $8.list_number->taille;
+    $$.result->array_value = translateListToTab($8.list_number); 
+    $$.result->length = $8.list_number->size;
 
-     $$.result->is_array = true;
-     $$.result->radius = $3;
-     $$.result->nb_dim = $5;
-     
-   }
- ;
-
+    $$.result->is_array = true;
+    $$.result->radius = $3;
+    $$.result->nb_dim = $5;
+  }
+;
 
 variable:
-   IDENTIFIER
-   {
-     struct symbol* tmp = lookup(tds,$1);
+IDENTIFIER
+  {
+    struct symbol* tmp = lookup(tds,$1);
 
-     if(tmp == NULL)
-     {
-       printf("ID: première utilisation de %s sans déclaration\n",$1);
-       return -1;
-     }
-
-
-     $$.result = tmp;
-     $$.code = NULL;
-
-     printf("variable -> ID\n");
-   }
-
-   | index_attribution ']'
-   {
-     $$.result = newtemp(&tds);
-     struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
-     $$.code = quadsConcat($1.code,NULL,newQuads);
-     
-     printf("variable -> ID[expression]\n");
-   }
-  ; 
+    if(tmp == NULL)
+    {
+     printf("ID: première utilisation de %s sans déclaration\n",$1);
+     return -1;
+    }
 
 
+    $$.result = tmp;
+    $$.code = NULL;
+
+    printf("variable -> ID\n");
+  }
+
+  | index_attribution ']'
+  {
+    $$.result = newtemp(&tds);
+    struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
+    $$.code = quadsConcat($1.code,NULL,newQuads);
+
+    printf("variable -> ID[expression]\n");
+  }
+; 
 
 variable_declaration:
-   IDENTIFIER
-   {
-     struct symbol* tmp = lookup(tds,$1);
+  IDENTIFIER
+  {
+    struct symbol* tmp = lookup(tds,$1);
 
-     if(tmp != NULL)
-     {
-       printf("Erreur, redéclaration de %s\n",$1);
-       exit(-1);
-     }
+    if(tmp != NULL)
+    {
+      printf("Erreur, redéclaration de %s\n",$1);
+      exit(-1);
+    }
 
-     $$.result = add(&tds, $1, false);
-     $$.result->type = INT_TYPE;
-     $$.code = NULL;
+    $$.result = add(&tds, $1, false);
+    $$.result->type = INT_TYPE;
+    $$.code = NULL;
 
-     printf("variable_declaration -> ID\n");
-   }
+    printf("variable_declaration -> ID\n");
+  }
 
-   | index_declaration ']'
-   {
-     $1.result->length = $1.decal->valeur;
-     $1.result->valeur_tab = malloc($1.decal->valeur*sizeof(int));
-     $1.code = NULL;
-     printf("variable_declaration -> index_declaration ]\n");
-   }
-
-  ;
-
+  | index_declaration ']'
+  {
+    $1.result->length = $1.decal->value;
+    $1.result->array_value = malloc($1.decal->value*sizeof(int));
+    $1.code = NULL;
+    printf("variable_declaration -> index_declaration ]\n");
+  }
+;
 
 index_declaration:
-   index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
-   {
-     add_dim($1.result,$3);
-     $$.nb_dim = $1.nb_dim+1;
-     $$.result = $1.result;
-     $$.decal->valeur = $1.decal->valeur*$3;
-     $$.code = $1.code;
+  index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
+  {
+    add_dim($1.result,$3);
+    $$.nb_dim = $1.nb_dim+1;
+    $$.result = $1.result;
+    $$.decal->value = $1.decal->value*$3;
+    $$.code = $1.code;
 
-     printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
-   }
+    printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
+  }
 
-   | IDENTIFIER '[' NUMBER
-   {
-     struct symbol* tmp = lookup(tds,$1);
+  | IDENTIFIER '[' NUMBER
+  {
+    struct symbol* tmp = lookup(tds,$1);
 
-     if(tmp != NULL)
-     {
-       printf("Erreur, redeclaration de %s\n",$1);
-       exit(-1);
-     }
+    if(tmp != NULL)
+    {
+      printf("Erreur, redeclaration de %s\n",$1);
+      exit(-1);
+    }
 
+    $$.result = add(&tds,$1,false);
+    $$.result->is_array = true;
+    add_dim($$.result,$3);
+    $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
+    $$.decal->value = $3;
+    $$.code = NULL;
+    $$.nb_dim = 1;
 
-     $$.result = add(&tds,$1,false);
-     $$.result->is_array = true;
-     add_dim($$.result,$3);
-     $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
-     $$.decal->valeur = $3;
-     $$.code = NULL;
-     $$.nb_dim = 1;
-
-     printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
-   }
-  ;
-
-
-
-
+    printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
+  }
+;
 
 attribution:	//TODO derivation inutile
-   variable_attribution '=' expression
-   {
-     if($1.decal == NULL)
-     {
-     //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
-       struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
-       $$.code = quadsConcat($3.code,NULL,newQuads);
-     }
-     else
-     {
-       struct quads* newQuads = quadsGen("store_into_tab",$3.result,$1.decal,$1.result);
-       $$.code = quadsConcat($1.code,$3.code,newQuads);
-     }
-     printf("attribution -> variable = expression\n");
-   }
-  ;
-
+  variable_attribution '=' expression
+  {
+    if($1.decal == NULL)
+    {
+      //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
+      struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
+      $$.code = quadsConcat($3.code,NULL,newQuads);
+    }
+    else
+    {
+      struct quads* newQuads = quadsGen("store_into_tab",$3.result,$1.decal,$1.result);
+      $$.code = quadsConcat($1.code,$3.code,newQuads);
+    }
+    printf("attribution -> variable = expression\n");
+  }
+;
 
 variable_attribution:
-   IDENTIFIER
-   {
-     struct symbol* tmp = lookup(tds,$1);
+  IDENTIFIER
+  {
+    struct symbol* tmp = lookup(tds,$1);
 
-     if(tmp == NULL)
-     {
-       printf("ID: première utilisation de %s sans déclaration\n",$1);
-       exit(-1);
-     }
+    if(tmp == NULL)
+    {
+      printf("ID: première utilisation de %s sans déclaration\n",$1);
+      exit(-1);
+    }
+    if(tmp->is_constant == true)
+    {
+      printf("Tentative de modification d'une constante\n");
+      exit(-1);
+    }
 
-     if(tmp->is_constante == true)
-     {
-       printf("Tentative de modification d'une constante\n");
-       exit(-1);
-     }
+    $$.result = tmp;
+    $$.code = NULL;
 
-     $$.result = tmp;
-     $$.code = NULL;
+    printf("variable -> ID\n");
+  }
 
-     printf("variable -> ID\n");
-   }
-
-   | index_attribution ']'
-   {
-     $$ = $1;
-     printf("variable -> ID[expression]\n");
-   }
-  ;
-
+  | index_attribution ']'
+  {
+    $$ = $1;
+    printf("variable -> ID[expression]\n");
+  }
+;
 
 index_attribution:
-   index_attribution DIM_SEPARATOR expression
-   {
-     $$.nb_dim = $1.nb_dim+1;
-     struct symbol* symbol_size_dim = newtemp(&tds);
-     symbol_size_dim->valeur = dim_size(tds,$1.result->nom,$$.nb_dim);
-     struct symbol* tmp1 = newtemp(&tds);
-     struct symbol* tmp2 = newtemp(&tds);
-     struct quads* quads1 = quadsGen("mul",$1.decal,symbol_size_dim,tmp1);
-     struct quads* quads2 = quadsGen("addu",tmp1,$3.result,tmp2);
-     $$.code = quadsConcat($1.code,$3.code,NULL);
-     $$.code = quadsConcat($$.code,quads1,quads2);
-     $$.result = $1.result;
-     $$.decal = tmp2;
+  index_attribution DIM_SEPARATOR expression
+  {
+    $$.nb_dim = $1.nb_dim+1;
+    struct symbol* symbol_size_dim = newtemp(&tds);
+    symbol_size_dim->value = dim_size(tds,$1.result->name,$$.nb_dim);
+    struct symbol* tmp1 = newtemp(&tds);
+    struct symbol* tmp2 = newtemp(&tds);
+    struct quads* quads1 = quadsGen("mul",$1.decal,symbol_size_dim,tmp1);
+    struct quads* quads2 = quadsGen("addu",tmp1,$3.result,tmp2);
+    $$.code = quadsConcat($1.code,$3.code,NULL);
+    $$.code = quadsConcat($$.code,quads1,quads2);
+    $$.result = $1.result;
+    $$.decal = tmp2;
 
-     printf("index_attribution -> index_attribution , expression\n");
-   }
-   | IDENTIFIER '[' expression
-   {
-     $$.result = lookup(tds,$1);
+    printf("index_attribution -> index_attribution , expression\n");
+  }
 
-     if($$.result == NULL)
-     {
-       printf("index: première utilisation de %s sans déclaration\n",$1);
-       exit(-1);
-     }
+  | IDENTIFIER '[' expression
+  {
+    $$.result = lookup(tds,$1);
 
-     if($$.result->is_constante == true)
-     {
-       printf("Tentative de modification de la constante %s\n",$1);
-       exit(-1);
-     }
-     $$.decal = $3.result;
-     $$.code = $3.code;
-     $$.nb_dim = 1;
+    if($$.result == NULL)
+    {
+      printf("index: première utilisation de %s sans déclaration\n",$1);
+      exit(-1);
+    }
+    if($$.result->is_constant == true)
+    {
+      printf("Tentative de modification de la constante %s\n",$1);
+      exit(-1);
+    }
 
-     printf("index_attribution -> ID [ expression\n");
-   }
-  ;
+    $$.decal = $3.result;
+    $$.code = $3.code;
+    $$.nb_dim = 1;
 
+    printf("index_attribution -> ID [ expression\n");
+  }
+;
 
 array:
   '{' list_array '}'
@@ -629,11 +605,12 @@ array:
     
     printf("array -> list_array\n");
   }
+;
 
 list_array:
   array ',' list_array
   {
-    checkDims($1.list_dim->suivant,$3.list_dim->suivant);
+    checkDims($1.list_dim->next,$3.list_dim->next);
 
     $$.list_dim = $1.list_dim;
     $$.list_dim->size = $3.list_dim->size + 1;
@@ -653,14 +630,13 @@ list_array:
     $$=$1;
     printf("list_array -> list_number\n");
   }
- ;
-
+;
 
 list_number:
   NUMBER
   {
     struct listNumber* tmp = malloc(sizeof(struct listNumber));
-    tmp->debut = NULL;
+    tmp->begin = NULL;
     $$.list_dim = appendToListDim(NULL,1);
     $$.list_number = addNumber(tmp,$1);
     $$.width = 1;
@@ -676,383 +652,329 @@ list_number:
     printf("list_array -> NUMBER ',' list_array\n");
  
   }
-
-
-
+;
 
 expression:
-    expression '+' expression
-    { 
-      $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("addu",$1.result,$3.result,$$.result);
-
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression + expression\n");
-    }
+  expression '+' expression
+  { 
+    $$.result = newtemp(&tds);
+    struct quads* newQuads = quadsGen("addu",$1.result,$3.result,$$.result);
+    $$.code = quadsConcat($1.code,$3.code,newQuads);
+    printf("expression -> expression + expression\n");
+  }
 
   | expression '-' expression
-    { 
-      $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("subu",$1.result,$3.result,$$.result);
-
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression - expression\n");
-    }
+  { 
+    $$.result = newtemp(&tds);
+    struct quads* newQuads = quadsGen("subu",$1.result,$3.result,$$.result);
+    $$.code = quadsConcat($1.code,$3.code,newQuads);
+    printf("expression -> expression - expression\n");
+  }
 
   | expression '/' expression
-    { 
-      $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("div",$1.result,$3.result,$$.result);
+  { 
+    $$.result = newtemp(&tds);
+    struct quads* newQuads = quadsGen("div",$1.result,$3.result,$$.result);
+    $$.code = quadsConcat($1.code,$3.code,newQuads);
+    printf("expression -> expression / expression\n");
+  }
 
 
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression / expression\n");
-    }
-
-
-   | expression '*' expression
-    { 
-      $$.result = newtemp(&tds);
-      struct quads* newQuads = quadsGen("mul",$1.result,$3.result,$$.result);
-
-
-      $$.code = quadsConcat($1.code,$3.code,newQuads);
-      printf("expression -> expression * expression\n");
-    }
+  | expression '*' expression
+  { 
+    $$.result = newtemp(&tds);
+    struct quads* newQuads = quadsGen("mul",$1.result,$3.result,$$.result);
+    $$.code = quadsConcat($1.code,$3.code,newQuads);
+    printf("expression -> expression * expression\n");
+  }
 
   | '(' expression ')'
-    {
-      $$=$2;
-      printf("expression -> ( expression )\n");
-    }
-
+  {
+    $$=$2;
+    printf("expression -> ( expression )\n");
+  }
 
   | '-' expression
-    {
-      $$.result = newtemp(&tds);
-      struct symbol* arg1 = newtemp(&tds);
-      arg1->valeur = 0;
-      struct quads* newQuads= quadsGen("subu",arg1,$2.result,$$.result);
+  {
+    $$.result = newtemp(&tds);
+    struct symbol* arg1 = newtemp(&tds);
+    arg1->value = 0;
+    struct quads* newQuads= quadsGen("subu",arg1,$2.result,$$.result);
+    $$.code = quadsConcat(NULL,$2.code,newQuads);
+    printf("expression -> - expression\n");
 
-
-      $$.code = quadsConcat(NULL,$2.code,newQuads);
-      printf("expression -> - expression\n");
-
-    }
-
+  }
   | INCR expression
-    {
-	//XXX instr addi
-      $$.result = $2.result;
-      struct symbol* arg = newtemp(&tds);
-      arg->valeur = 1;
-      struct quads* newQuads= quadsGen("addu",$2.result,arg,$2.result);
-
-
-      $$.code = quadsConcat(NULL,$2.code,newQuads);
-      printf("expression -> ++ expression\n");
-
-    }
+  {
+    //XXX instr addi
+    $$.result = $2.result;
+    struct symbol* arg = newtemp(&tds);
+    arg->value = 1;
+    struct quads* newQuads= quadsGen("addu",$2.result,arg,$2.result);
+    $$.code = quadsConcat(NULL,$2.code,newQuads);
+    printf("expression -> ++ expression\n");
+  }
 
   | DECR expression
-    {
-	//XXX instr subi
-      $$.result = $2.result;
-      struct symbol* arg = newtemp(&tds);
-      arg->valeur = 1;
-      struct quads* newQuads= quadsGen("subu",$2.result,arg,$2.result);
-
-
-      $$.code = quadsConcat(NULL,$2.code,newQuads);
-      printf("expression -> -- expression\n");
-
-    }
+  {
+    //XXX instr subi
+    $$.result = $2.result;
+    struct symbol* arg = newtemp(&tds);
+    arg->value = 1;
+    struct quads* newQuads= quadsGen("subu",$2.result,arg,$2.result);
+    $$.code = quadsConcat(NULL,$2.code,newQuads);
+    printf("expression -> -- expression\n");
+  }
 
   | expression INCR
-      {
-	//XXX instr addi
-      $$.result = $1.result;
-      struct symbol* arg = newtemp(&tds);
-      arg->valeur = 1;
-      struct quads* newQuads= quadsGen("addu",$1.result,arg,$1.result);
-
-
-      $$.code = quadsConcat(NULL,$1.code,newQuads);
-      printf("expression -> expression ++\n");
-
-    }
+  {
+    //XXX instr addi
+    $$.result = $1.result;
+    struct symbol* arg = newtemp(&tds);
+    arg->value = 1;
+    struct quads* newQuads= quadsGen("addu",$1.result,arg,$1.result);
+    $$.code = quadsConcat(NULL,$1.code,newQuads);
+    printf("expression -> expression ++\n");
+  }
 
   | expression DECR
-    {
-	//XXX instr subi
-      $$.result = $1.result;
-      struct symbol* arg = newtemp(&tds);
-      arg->valeur = 1;
-      struct quads* newQuads= quadsGen("subu",$1.result,arg,$1.result);
+  {
+    //XXX instr subi
+    $$.result = $1.result;
+    struct symbol* arg = newtemp(&tds);
+    arg->value = 1;
+    struct quads* newQuads= quadsGen("subu",$1.result,arg,$1.result);
+    $$.code = quadsConcat(NULL,$1.code,newQuads);
+    printf("expression -> expression --\n");
 
-
-      $$.code = quadsConcat(NULL,$1.code,newQuads);
-      printf("expression -> expression --\n");
-
-    }
+  }
 
   | variable
-    {
-      $$.result = $1.result;
-
-      $$.code = $1.code;
-      printf("expression -> variable\n");
-    }
+  {
+    $$.result = $1.result;
+    $$.code = $1.code;
+    printf("expression -> variable\n");
+  }
 
   | NUMBER
-    {
-      $$.result = newtemp(&tds);
-      $$.result->valeur = $1;
+  {
+    $$.result = newtemp(&tds);
+    $$.result->value = $1;
+    $$.code = NULL;
+    printf("expression -> NUMBER (%d)\n", $1);
+  }
 
-      $$.code = NULL;	//TODO load imediate
-      printf("expression -> NUMBER (%d)\n", $1);
+  | IDENTIFIER '$' index_attribution ']'
+  {
+    struct symbol* stencil = lookup(tds,$1);
+    if(stencil == NULL)
+    {
+      printf("Erreur, %s n'est pas déclaré\n",$1);
+      exit(-1);
+    }
+    if(stencil->type != STENCIL_TYPE)
+    {
+      printf("Erreur %s n'est pas un stencil\n",$1);
+      exit(-1);
     }
 
+    int i;
+    int nb_element = total_element(stencil->radius,stencil->nb_dim);
+    struct symbol* tmp1 = newtemp(&tds);
+    struct symbol* tmp2 = newtemp(&tds);
+    struct symbol* tmp3 = newtemp(&tds);
+    struct symbol* tmp4 = newtemp(&tds);
+    struct symbol* tmp5 = newtemp(&tds);
+    tmp5->value = 0;
 
-   | IDENTIFIER '$' index_attribution ']'
+    for(i=0;i<nb_element;i++)
     {
-      struct symbol* stencil = lookup(tds,$1);
-      if(stencil == NULL)
-      {
-	printf("Erreur, %s n'est pas déclaré\n",$1);
-        exit(-1);
-      }
-      if(stencil->type != STENCIL_TYPE)
-      {
-        printf("Erreur %s n'est pas un stencil\n",$1);
-        exit(-1);
-      }
+      struct symbol* shift = newtemp(&tds);
+      shift->value = decalage($3.result->size_dim,stencil->radius,stencil->nb_dim,i);
 
-      int i;
-      int nb_element = total_element(stencil->radius,stencil->nb_dim);
-      struct symbol* tmp1 = newtemp(&tds);
-      struct symbol* tmp2 = newtemp(&tds);
-      struct symbol* tmp3 = newtemp(&tds);
-      struct symbol* tmp4 = newtemp(&tds);
-      struct symbol* tmp5 = newtemp(&tds);
-      tmp5->valeur = 0;
+      struct symbol* iterator = newtemp(&tds);
+      iterator->value = i;
 
-      for(i=0;i<nb_element;i++)
-      {
-        struct symbol* shift = newtemp(&tds);
-        shift->valeur = decalage($3.result->taille_dim,stencil->radius,stencil->nb_dim,i);
+      struct quads* newQuads1 = quadsGen("addu",shift,$3.decal,tmp1);
+      struct quads* newQuads2 = quadsGen("load_from_tab",$3.result,tmp1,tmp2);
+      struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
+      struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
+      struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
 
-        struct symbol* iterator = newtemp(&tds);
-        iterator->valeur = i;
-
-        struct quads* newQuads1 = quadsGen("addu",shift,$3.decal,tmp1);
-        struct quads* newQuads2 = quadsGen("load_from_tab",$3.result,tmp1,tmp2);
-        struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
-        struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
-        struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
-
-        $$.code = quadsConcat($3.code,newQuads1,newQuads2);
-        $$.code = quadsConcat($$.code,newQuads3,newQuads4);
-        $$.code = quadsConcat($$.code,newQuads5,NULL);
-      }
-
-
-      $$.result = tmp5;
-
-      printf("expression -> ID $ index_attribution ]\n");
+      $$.code = quadsConcat($3.code,newQuads1,newQuads2);
+      $$.code = quadsConcat($$.code,newQuads3,newQuads4);
+      $$.code = quadsConcat($$.code,newQuads5,NULL);
     }
 
-    | index_attribution ']' '$' IDENTIFIER
+    $$.result = tmp5;
+    printf("expression -> ID $ index_attribution ]\n");
+  }
+
+  | index_attribution ']' '$' IDENTIFIER
+  {
+    struct symbol* stencil = lookup(tds,$4);
+    if(stencil == NULL)
     {
-      struct symbol* stencil = lookup(tds,$4);
-      if(stencil == NULL)
-      {
-	printf("Erreur, %s n'est pas déclaré\n",$4);
-        exit(-1);
-      }
-      if(stencil->type != STENCIL_TYPE)
-      {
-        printf("Erreur %s n'est pas un stencil\n",$4);
-        exit(-1);
-      }
-
-      int i;
-      int nb_element = total_element(stencil->radius,stencil->nb_dim);
-      struct symbol* tmp1 = newtemp(&tds);
-      struct symbol* tmp2 = newtemp(&tds);
-      struct symbol* tmp3 = newtemp(&tds);
-      struct symbol* tmp4 = newtemp(&tds);
-      struct symbol* tmp5 = newtemp(&tds);
-      tmp5->valeur = 0;
-
-      for(i=0;i<nb_element;i++)
-      {
-        struct symbol* shift = newtemp(&tds);
-        shift->valeur = decalage($1.result->taille_dim,stencil->radius,stencil->nb_dim,i);
-
-        struct symbol* iterator = newtemp(&tds);
-        iterator->valeur = i;
-
-        struct quads* newQuads1 = quadsGen("addu",shift,$1.decal,tmp1);
-        struct quads* newQuads2 = quadsGen("load_from_tab",$1.result,tmp1,tmp2);
-        struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
-        struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
-        struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
-
-        $$.code = quadsConcat($1.code,newQuads1,newQuads2);
-        $$.code = quadsConcat($$.code,newQuads3,newQuads4);
-        $$.code = quadsConcat($$.code,newQuads5,NULL);
-      }
-
-      $$.result = tmp5;
-
-      printf("expression -> index_attribution ] $ ID\n");
+      printf("Erreur, %s n'est pas déclaré\n",$4);
+      exit(-1);
     }
-  ;
+    if(stencil->type != STENCIL_TYPE)
+    {
+      printf("Erreur %s n'est pas un stencil\n",$4);
+      exit(-1);
+    }
+
+    int i;
+    int nb_element = total_element(stencil->radius,stencil->nb_dim);
+    struct symbol* tmp1 = newtemp(&tds);
+    struct symbol* tmp2 = newtemp(&tds);
+    struct symbol* tmp3 = newtemp(&tds);
+    struct symbol* tmp4 = newtemp(&tds);
+    struct symbol* tmp5 = newtemp(&tds);
+    tmp5->value = 0;
+
+    for(i=0;i<nb_element;i++)
+    {
+      struct symbol* shift = newtemp(&tds);
+      shift->value = decalage($1.result->size_dim,stencil->radius,stencil->nb_dim,i);
+
+      struct symbol* iterator = newtemp(&tds);
+      iterator->value = i;
+
+      struct quads* newQuads1 = quadsGen("addu",shift,$1.decal,tmp1);
+      struct quads* newQuads2 = quadsGen("load_from_tab",$1.result,tmp1,tmp2);
+      struct quads* newQuads3 = quadsGen("load_from_tab",stencil,iterator,tmp3);
+      struct quads* newQuads4 = quadsGen("mul",tmp2,tmp3,tmp4);
+      struct quads* newQuads5= quadsGen("addu",tmp4,tmp5,tmp5);
+
+      $$.code = quadsConcat($1.code,newQuads1,newQuads2);
+      $$.code = quadsConcat($$.code,newQuads3,newQuads4);
+      $$.code = quadsConcat($$.code,newQuads5,NULL);
+    }
+
+    $$.result = tmp5;
+    printf("expression -> index_attribution ] $ ID\n");
+  }
+;
 
 condition:  //condition booléenne
-    expression EQUAL expression
-    {
-      struct quads* newQuads = quadsGen("beq",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
+  expression EQUAL expression
+  {
+    struct quads* newQuads = quadsGen("beq",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
+    printf("condition -> expression == expression\n");
+  }
 
-      $$.code = quadsConcat(tmp,NULL,newQuads);
+  | expression NOTEQUAL expression
+  {
+    struct quads* newQuads = quadsGen("bne",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      printf("condition -> expression == expression\n");
-    }
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
+    printf("condition -> expression != expression\n");
+  }
 
-    | expression NOTEQUAL expression
-    {
-      struct quads* newQuads = quadsGen("bne",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
+  | expression GREATEREQ expression
+  {
+    struct quads* newQuads = quadsGen("bge",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
+    printf("condition -> expression >= expression\n");
+  }
 
-      $$.code = quadsConcat(tmp,NULL,newQuads);
+  | expression '>' expression
+  {
+    struct quads* newQuads = quadsGen("bgt",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      printf("condition -> expression != expression\n");
-    }
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
+    printf("condition -> expression > expression\n");
+  }
 
-    | expression GREATEREQ expression
-    {
-      struct quads* newQuads = quadsGen("bge",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
+  | expression LOWEREQ expression
+  {
+    struct quads* newQuads = quadsGen("ble",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
+    printf("condition -> expression <= expression\n");
+  }
 
-      $$.code = quadsConcat(tmp,NULL,newQuads);
+  | expression '<' expression
+  {
+    struct quads* newQuads = quadsGen("blt",$1.result,$3.result,NULL);
+    $$.truelist = new_list_quads(newQuads);
+    struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
 
-      printf("condition -> expression >= expression\n");
-    }
+    newQuads = quadsGen("j",NULL,NULL,NULL);
+    $$.falselist = new_list_quads(newQuads);
+    $$.code = quadsConcat(tmp,NULL,newQuads);
 
-
-    | expression '>' expression
-    {
-      struct quads* newQuads = quadsGen("bgt",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
-
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
-
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
-
-      $$.code = quadsConcat(tmp,NULL,newQuads);
-
-      printf("condition -> expression > expression\n");
-    }
-
-
-    | expression LOWEREQ expression
-    {
-      struct quads* newQuads = quadsGen("ble",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
-
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
-
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
-
-      $$.code = quadsConcat(tmp,NULL,newQuads);
-
-      printf("condition -> expression <= expression\n");
-    }
-
-
-
-    | expression '<' expression
-    {
-      struct quads* newQuads = quadsGen("blt",$1.result,$3.result,NULL);
-      $$.truelist = new_list_quads(newQuads);
-
-      struct quads* tmp = quadsConcat($1.code,$3.code,newQuads);
-
-      newQuads = quadsGen("j",NULL,NULL,NULL);
-      $$.falselist = new_list_quads(newQuads);
-
-      $$.code = quadsConcat(tmp,NULL,newQuads);
-
-      printf("condition -> expression < expression\n");
-    }
+    printf("condition -> expression < expression\n");
+  }
 
   | condition OR tag condition
-    {
-      struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $3;
-      complete_list_quads($1.falselist,tmp);
-      $$.code = quadsConcat($1.code, $4.code, NULL);
-      $$.truelist = concat_list_quads($1.truelist, $4.truelist);
-      $$.falselist = $4.falselist;
+  {
+    struct symbol* tmp = newtemp(&tds);
+    tmp->value = $3;
+    complete_list_quads($1.falselist,tmp);
+    $$.code = quadsConcat($1.code, $4.code, NULL);
+    $$.truelist = concat_list_quads($1.truelist, $4.truelist);
+    $$.falselist = $4.falselist;
 
-      printf("condition -> condition || tag condition\n");
-    }
+    printf("condition -> condition || tag condition\n");
+  }
 
   | condition AND tag condition
-    {
-      struct symbol* tmp = newtemp(&tds);
-      tmp->valeur = $3;
-      complete_list_quads($1.truelist, tmp);
-      $$.code = quadsConcat($1.code, $4.code, NULL);
-      $$.falselist = concat_list_quads($1.falselist, $4.falselist);
-      $$.truelist = $4.truelist;
+  {
+    struct symbol* tmp = newtemp(&tds);
+    tmp->value = $3;
+    complete_list_quads($1.truelist, tmp);
+    $$.code = quadsConcat($1.code, $4.code, NULL);
+    $$.falselist = concat_list_quads($1.falselist, $4.falselist);
+    $$.truelist = $4.truelist;
 
-      printf("condition -> condition && tag condition\n");
-    }
+    printf("condition -> condition && tag condition\n");
+  }
 
   | '!' condition
-    {
-      $$.code = $2.code;
-      $$.falselist = $2.truelist;
-      $$.truelist = $2.falselist;
+  {
+    $$.code = $2.code;
+    $$.falselist = $2.truelist;
+    $$.truelist = $2.falselist;
 
-      printf("condition -> ! condition\n");
-    }
-
-
-
+    printf("condition -> ! condition\n");
+  }
 
   | '(' condition ')'
   {
     $$ = $2;
     printf("condition -> (condition)\n");
   }
-
-  
-  ;
+;
 
 
 %%
