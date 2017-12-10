@@ -59,8 +59,7 @@
 %token FOR
 %token RETURN
 %token CONST
-%token STENCIL
-%token INT
+%token <value>TYPE
 %token MAIN
 %token PRINTF
 %token PRINTI
@@ -82,10 +81,8 @@
 %type <codegen>line
 %type <codegen>attribution
 %type <codegen>declaration
-%type <codegen>var_int
-%type <codegen>var_stencil
-%type <codegen>list_var_int
-%type <codegen>list_var_stencil
+%type <codegen>var
+%type <codegen>list_var
 %type <codegen>bloc
 %type <codegen>avancement_for
 %type <value>tag
@@ -126,8 +123,13 @@ axiom:
 
 
 main:
-  INT MAIN '(' ')' bloc
+  TYPE MAIN '(' ')' bloc
   {
+    if($1 != INT_TYPE)
+    {
+      printf("Erreur, main pas de type int\n");
+      exit(-1);
+    }
     $$=$5;
   }
 
@@ -322,34 +324,37 @@ code_line:
 ;
 
 declaration:
-  INT list_var_int
+  TYPE list_var
   {
+    if($1 != $2.result->type)
+    {
+      printf("Erreur, les variables declarées ne sont pas du bon type\n");
+    }
     $$=$2;
     printf("declaration -> INT list_var_int\n");
   }
-
-  | STENCIL list_var_stencil
-  {
-    $$=$2;
-    printf("declaration -> STENCIL list_var_stencil\n");
-  }
 ;
 
-list_var_int:
-  var_int ',' list_var_int
+list_var:
+  var ',' list_var
   {
+    if($1.result->type != $3.result->type)
+    {
+      printf("Erreur, %s et %s pas de meme type\n",$1.result->name,$3.result->name);
+      exit(-1);
+    }
     $$.code = quadsConcat($1.code,$3.code,NULL);
     printf("list_var_int -> list_var_int var_int\n");
   }
 
-  | var_int
+  | var
   {
     $$=$1;
     printf("list_var_int -> var_int\n");
-}
+  }
 ;
 
-var_int:
+var:
   variable_declaration
   {
     $$=$1;
@@ -380,25 +385,8 @@ var_int:
     checkDims($1.result->size_dim,$3.list_dim->next);
     $$.result->array_value = translateListToTab($3.list_number);
   }
-;
 
-
-list_var_stencil:
-  var_stencil ',' list_var_stencil
-  {
-    $$.code = quadsConcat($1.code,$3.code,NULL);
-    printf("list_var_stencil -> list_var_stencil var_stencil\n");
-  }
-
-  | var_stencil
-  {
-    $$=$1;
-    printf("list_var_stencil -> var_stencil\n");
-  }
-;
-
-var_stencil:
-  IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
+  | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
   {
     struct symbol* tmp = lookup(tds,$1);
 
@@ -422,8 +410,9 @@ var_stencil:
   }
 ;
 
+
 variable:
-IDENTIFIER
+  IDENTIFIER
   {
     struct symbol* tmp = lookup(tds,$1);
 

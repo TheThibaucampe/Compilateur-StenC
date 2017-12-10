@@ -1,6 +1,7 @@
 %{
   #include "binaryconvert.h"
   #include "y.tab.h"
+  #include "enum.h"
   #include <string.h>
 
 %}
@@ -25,8 +26,8 @@ SPACES \n|\t|" "
 "for"			{return FOR;}
 "return"		{return RETURN;}
 "const"			{return CONST;}
-"stencil"		{return STENCIL;}
-"int"			{return INT;}
+"stencil"		{yylval.value = STENCIL_TYPE; return TYPE;}
+"int"			{yylval.value = INT_TYPE; return TYPE;}
 "main"			{return MAIN;}
 "printf"		{return PRINTF;}
 "printi"		{return PRINTI;}
