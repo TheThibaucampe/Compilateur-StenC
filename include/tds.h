@@ -24,11 +24,11 @@ struct symbol{
 			int* array_value;
 		};
 		struct {
-      struct dim* size_dim_stenc;
-      int length_stenc;
-      int* value_tab_stenc;
-      int radius;
-      int nb_dim;
+		      struct dim* size_dim_stenc;
+		      int length_stenc;
+		      int* value_tab_stenc;
+		      int radius;
+		      int nb_dim;
 		};
 	};
 	struct symbol* next;
