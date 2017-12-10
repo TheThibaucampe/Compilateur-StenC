@@ -39,7 +39,12 @@ struct dim* appendToListDim(struct dim* dim, int val)
 int dim_size(struct symbol* tds, char* tab_name, int dim)
 {
 	struct symbol* tab = lookup_tab(tds,tab_name);
-	if(tab->is_array == 0)
+	if(tab == NULL)
+	{
+		printf("Erreur, %s n'est pas déclaré\n",tab_name);
+		exit(-1);
+	}
+	if(tab->is_array == false)
 	{
 		printf("Erreur, %s n'est pas un tableau\n",tab_name);
 		exit(-1);
