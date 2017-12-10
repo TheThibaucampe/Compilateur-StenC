@@ -96,10 +96,10 @@ void free_listDim(struct dim* dims)
 	struct dim* Bfree_dim = current_dim;
 	while (current_dim != NULL)
 	{
+		printf("Size = %d\n", current_dim->size);
 		current_dim = current_dim->next;
 		free(Bfree_dim);
 		Bfree_dim = current_dim;
-		printf("Size = %d\n", current_dim->size);
 	}
 	return;
 }
