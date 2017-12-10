@@ -5,7 +5,7 @@ struct symbol* newtemp(struct symbol** tds)
 {
 	//Prepare the properties of the temporary
 	static int nb_temp = 0;
-	char* name=malloc(MAX_TAILLE_TEMP*sizeof(char));
+	char* name = malloc(MAX_TAILLE_TEMP*sizeof(char));
 	snprintf(name, MAX_TAILLE_TEMP, "temp_%d",nb_temp);
 
 	//Send the properties and get the symbol of the temporary
@@ -42,7 +42,7 @@ struct symbol* add_temp_label(struct symbol** tds, char* name, int cst)
 {
 	//Create the symbol
 	struct symbol* newSymbol = malloc(sizeof(struct symbol));
-	newSymbol->name = strdup(name);
+	newSymbol->name = name;
 	newSymbol->is_constant = cst;
 	newSymbol->type = LABEL_TYPE;
 	newSymbol->next = NULL;
@@ -74,6 +74,7 @@ struct symbol* add(struct symbol** tds, char* name, int cst)
 	struct symbol* newSymbol = malloc(sizeof(struct symbol));
 	newSymbol->name = malloc(MAX_TAILLE_TEMP*sizeof(char));
 	snprintf(newSymbol->name,MAX_TAILLE_TEMP,"A%s",name);
+	free(name);
 	newSymbol->is_constant = cst;
 	newSymbol->type = INT_TYPE;
 	newSymbol->next = NULL;
