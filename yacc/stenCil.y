@@ -294,7 +294,7 @@ code_line:
   {
     struct symbol* tmp = newtemp(&tds);
     tmp->string = $3;
-    tmp->type = STRING;
+    tmp->type = STRING_TYPE;
     $$.code = quadsGen("printf",NULL,NULL,tmp);
     printf("code_ligne -> PRINTF '(' STRING ')'\n");
   }
