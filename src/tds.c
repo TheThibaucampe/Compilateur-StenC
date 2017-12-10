@@ -112,6 +112,7 @@ struct symbol* lookup(struct symbol* tds, char* name)
 	{
 		if(strcmp(tmp,curseur->name) == 0)
 		{
+			free(tmp);
 			return curseur;
 		}
 		curseur = curseur->next;
