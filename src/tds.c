@@ -156,12 +156,40 @@ struct symbol* lookup_label(struct symbol* tds, int numInstr)
 void print(struct symbol* tds)
 {
 	struct symbol* curseur = tds;
+
+	printf("Name\t\tIs_constant\tType\t\tIs_Array\tValue\n");
+
 	while(curseur != NULL)
 	{
-		if(curseur->type == STRING_TYPE)
-			printf("%s %d %s\n",curseur->name,curseur->is_constant,curseur->string);
+		printf("%10s\t",curseur->name);
+		if(curseur->is_constant)
+		{
+			printf("True\t\t");
+		}
 		else
-			printf("%s %d %d\n",curseur->name,curseur->is_constant,curseur->value);
+		{
+			printf("False\t\t");
+		}
+
+		if(curseur->type == STRING_TYPE)
+			printf("String\t\tFalse\t\t%s\n",curseur->string);
+		else if(curseur->type == STENCIL_TYPE)
+		{
+			printf("Stencil\t\tTrue\n");
+		}
+		else
+		{
+			printf("Int\t\t");
+			if(curseur->is_array)
+			{
+				printf("True\n");
+			}
+			else
+			{
+				printf("False\t\t%d\n",curseur->value);
+			}
+		}
 		curseur = curseur->next;
 	}
 }
+#include "tds.h"

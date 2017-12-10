@@ -12,8 +12,8 @@
 
 
 -factoristion du code
--enum is_
--controle de type
+-enum is_						OK
+-controle de type					A PEU PRES
 -enum type						OK
 -mise du champ type dans tds				OK
 -verification des regle (passage des attributs)		A PEU PRES
