@@ -28,7 +28,7 @@ void free_tds(struct symbol* tds)
 				free(current_symbol->value_tab_stenc);
 			} else
 			{
-				printf("Attention, je suis %d\n", current_symbol->name);
+				printf("Attention, je suis %s\n", current_symbol->name);
 				free_listDim(current_symbol->size_dim);
 				printf("Je désalloue un array_value\n");
 				free(current_symbol->array_value);

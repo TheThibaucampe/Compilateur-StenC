@@ -44,6 +44,7 @@ struct symbol* add_temp_label(struct symbol** tds, char* name, int cst)
 	struct symbol* newSymbol = malloc(sizeof(struct symbol));
 	newSymbol->name = name;
 	newSymbol->is_constant = cst;
+	newSymbol->is_array = false;
 	newSymbol->type = LABEL_TYPE;
 	newSymbol->next = NULL;
 
@@ -76,6 +77,7 @@ struct symbol* add(struct symbol** tds, char* name, int cst)
 	snprintf(newSymbol->name,MAX_TAILLE_TEMP,"A%s",name);
 	free(name);
 	newSymbol->is_constant = cst;
+	newSymbol->is_array = false;
 	newSymbol->type = INT_TYPE;
 	newSymbol->next = NULL;
 

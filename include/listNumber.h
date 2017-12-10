@@ -18,7 +18,7 @@ struct listNumber {
 };
 
 struct listNumber* addNumber(struct listNumber*, int);
-int* translateListToTab(struct listNumber*);
+int* translateListToTab(struct listNumber*,int*);
 struct listNumber* concatListNumber(struct listNumber*, struct listNumber*);
 
 #endif

@@ -35,11 +35,8 @@ struct listNumber* concatListNumber(struct listNumber* l1, struct listNumber* l2
 }
 
 //Convert a linked list of int into an integer array (int*)
-int* translateListToTab(struct listNumber* list)
+int* translateListToTab(struct listNumber* list,int* array)
 {
-	//Create the array
-	int* array = malloc(list->size*sizeof(int));
-
 	if(list->begin == NULL)
 	{
 		printf("WARNING : An empty linked list of number has been flushed in an empty array ! \n");

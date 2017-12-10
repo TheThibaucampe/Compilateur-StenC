@@ -424,7 +424,8 @@ var:
       exit(-1);
     }
     checkDims($1.result->size_dim,$3.list_dim->next);
-    $$.result->array_value = translateListToTab($3.list_number);
+    free_listDim($3.list_dim);
+    $$.result->array_value = translateListToTab($3.list_number,$1.result->array_value);
     free_listNumber($3.list_number);
   }
 
@@ -439,12 +440,14 @@ var:
     }
 
     checkDimsStencil($8.list_dim, $3, $5);
+    free_listDim($8.list_dim);
 
     $$.result = add(&tds, $1, false);
     $$.result->type = STENCIL_TYPE;
+    $$.result->value_tab_stenc = malloc(total_element($3,$5)*sizeof(int));
 
-    $$.result->array_value = translateListToTab($8.list_number); 
-    $$.result->length = $8.list_number->size;
+    $$.result->value_tab_stenc = translateListToTab($8.list_number,$$.result->value_tab_stenc); 
+    $$.result->length_stenc = $8.list_number->size;
     free_listNumber($8.list_number);
 
     $$.result->is_array = true;
