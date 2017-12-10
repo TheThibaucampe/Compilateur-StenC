@@ -20,6 +20,8 @@
 
   int nextquad = 1;
 
+  int debug = 0;
+
 %}
 
 %union{
@@ -1029,13 +1031,25 @@ void yyerror (char *s) {
     fprintf(stderr, "[Yacc] error: %s\n", s);
 }
 
-int main() {
-  printf("Enter an arithmetic expression:\n");
+int main(int argc, char* argv[]) {
+  if(argc >= 2)
+  {
+    if(strcmp(argv[1],"-d") == 0)
+    {
+      debug = 1;
+    }
+  }
+
+
+  printf("Enter a C statement:\n");
   yyparse();
-  printf("-----------------\nSymbol table:\n");
-  print(tds);
-  printf("-----------------\nQuad list:\n");
-  quadsPrint(quadsFinal);
+  if(debug)
+  {
+    printf("-----------------\nSymbol table:\n");
+    print(tds);
+    printf("-----------------\nQuad list:\n");
+    quadsPrint(quadsFinal);
+  }
 
   tradCodeFinal("out.s",quadsFinal,tds);
 
