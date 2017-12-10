@@ -17,7 +17,6 @@ int convertBinaryToDecimal(long long n)
 //Convert a string into a decimal
 int convert (char* yytext)
 {
-	int result = 0;
 	if (strlen(yytext) >= 2)
 	{
 		if (yytext[0] == '0') //Conversion incoming !
