@@ -11,6 +11,8 @@ int main()
 		{
 			printf("Ah ! It's not a 2\n");
 		}
+
+		i++;
 	}
 
 	return 0;
