@@ -73,6 +73,7 @@
 %token DECR
 %token DIM_SEPARATOR
 %token <string>STRING
+%token PREPROC
 
 %type <codegen>condition
 %type <codegen>expression
@@ -96,6 +97,8 @@
 %type <codegen>variable_declaration
 %type <codegen>variable
 %type <codegen>main
+%type <codegen>preproc
+%type <codegen>list_preproc
 
 %left DIM_SEPARATOR
 %left '(' ')'
@@ -113,7 +116,7 @@
 %%
 
 axiom:
-  main
+  list_preproc
     {
       quadsFinal = $1.code;
       printf("Match :-) !\n");
@@ -121,6 +124,28 @@ axiom:
     }
 ;
 
+
+list_preproc:
+  preproc list_preproc
+  {
+    $$.code = quadsConcat($1.code,$2.code,NULL);
+  }
+
+  | main
+  {
+    $$ = $1;
+  }
+;
+
+preproc:
+  PREPROC IDENTIFIER NUMBER
+  {
+    $$.result = add(&tds,$2,true);
+    $$.result->type = INT_TYPE;
+    $$.result->is_array = false;
+    $$.result->value = $3;
+    $$.code = NULL;
+  }
 
 main:
   TYPE MAIN '(' ')' bloc
