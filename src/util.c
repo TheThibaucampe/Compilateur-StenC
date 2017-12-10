@@ -24,16 +24,7 @@ void free_tds(struct symbol* tds)
 		{
 			if (current_symbol->type == STENCIL_TYPE)
 			{
-				struct dim* current_dim = current_symbol->size_dim_stenc;
-				struct dim* Bfree_dim = current_dim;
-				while (current_dim != NULL)
-				{
-					current_dim = current_dim->next;
-					free(Bfree_dim);
-					Bfree_dim = current_dim;
-				}
 				free(current_symbol->value_tab_stenc);
-				break;
 			} else
 			{
 				struct dim* current_dim = current_symbol->size_dim;
@@ -44,6 +35,7 @@ void free_tds(struct symbol* tds)
 					free(Bfree_dim);
 					Bfree_dim = current_dim;
 				}
+				printf("Je désalloue un array_value\n");
 				free(current_symbol->array_value);
 			}
 		} else
@@ -106,6 +98,10 @@ void free_listNumber(struct listNumber* lN)
 
 void free_all()
 {
+	printf("Début du free quad\n");
 	free_code(quadsFinal);
+	printf("Fin du free quad\n");
+	printf("Début du free tds\n");
 	free_tds(tds);
+	printf("Fin du free tds\n");
 }
