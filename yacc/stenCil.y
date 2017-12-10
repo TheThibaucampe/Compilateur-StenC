@@ -26,19 +26,25 @@
 	struct{
 		struct symbol* result;
 		struct quads* code;
-		struct list_quads* truelist;
-		struct list_quads* falselist;
-		int nb_dim;
-		struct symbol* decal;
-    char* type;
+		union {
+			struct {
+				struct list_quads* truelist;
+				struct list_quads* falselist;
+			};
+			struct {
+				int nb_dim;
+				struct symbol* decal;
+			};
+		};
+		char* type;
 	} codegen;
 
-  struct{
-    int width;
-    struct listNumber* list_number;
-    struct dim* list_dim;
-    int nb_dim;
-  } tab;
+	struct{
+		int width;
+		struct listNumber* list_number;
+		struct dim* list_dim;
+		int nb_dim;
+	} tab;
 }
 
 
@@ -78,7 +84,6 @@
 %type <codegen>declaration
 %type <codegen>var_int
 %type <codegen>var_stencil
-%type <codegen>list_var
 %type <codegen>list_var_int
 %type <codegen>list_var_stencil
 %type <codegen>bloc
@@ -126,6 +131,20 @@ main:
       $$=$5;
     }
 
+
+bloc:
+   '{' line '}'
+   {
+      $$ = $2;
+     printf("bloc -> { line }\n");
+   }
+
+ /*  | statement
+   {
+     $$=$1;
+     printf("bloc ->statement\n");
+   } TODO Erreur shift/reduce */ 
+;
 
 
 line:
@@ -204,6 +223,7 @@ statement:
     }
 
     | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
+	//TODO avancement for pourrai etre un code line??
       {
 
       nextquad+=($10-$8);
@@ -221,7 +241,7 @@ statement:
       //Ajout du goto begin
       tmp = newLabel(&tds,$5);
       struct quads* newQuads = quadsGen("j", NULL, NULL, tmp);
-      $$.code = quadsConcat(code_tmp,$9.code ,newQuads);
+      code_tmp = quadsConcat(code_tmp,$9.code ,newQuads);
 
       //Concaténation de la falselist de la condition
       tmp = newLabel(&tds,nextquad);
@@ -233,29 +253,39 @@ statement:
         printf("statement -> for\n");
       }
   	
-    //Function
-    | INT IDENTIFIER '(' list_var ')' '{' line RETURN NUMBER ';' '}'
-    {
-
-    }
-
-    | STENCIL IDENTIFIER '(' list_var ')' '{' line RETURN STENC ';' '}'
-    {
-      
-    }
   ;
 
 
 avancement_for:
     attribution
     {
+      $$=$1;
       printf("avencement_for -> attribution\n");
     }
 
     | expression
     {
+      $$=$1;
       printf("avencement_for -> expression\n");
     }
+ ;
+
+
+
+tag:
+    {
+      $$ = nextquad;
+      printf("Tag\n");
+    }
+  ;
+
+tag_else:
+    {
+      nextquad++;
+      $$ = nextquad;
+      printf("Tag else\n");
+    }
+  ;
 
 code_line:
     attribution
@@ -297,31 +327,18 @@ declaration:
      printf("declaration -> INT list_var_int\n");
    }
 
-	| STENCIL list_var_stencil
+   | STENCIL list_var_stencil
    {
      $$=$2;
      printf("declaration -> STENCIL list_var_stencil\n");
    }
    ;
 
-list_var:
-    list_var_int
-    {
-     $$=$1;
-     printf("list_var -> list_var_int\n");
-    }
-
-    |list_var_stencil
-    {
-      $$=$1;
-      printf("list_var -> list_var_stencil\n");
-    }
 
 list_var_int:
    var_int ',' list_var_int
    {
      $$.code = quadsConcat($1.code,$3.code,NULL);
-     //XXX result?
      printf("list_var_int -> list_var_int var_int\n");
    }
 
@@ -335,9 +352,9 @@ list_var_int:
 var_int:
    variable_declaration
    {
+     $$=$1;
      $$.type = "int";
      printf("var_int -> variable_declaration\n");
-     //XXX code
    }
 
    | variable_declaration '=' expression
@@ -350,7 +367,10 @@ var_int:
        return -1;
      }
 
-	//TODO test si tableau ou pas
+     if($1.decal != NULL)
+     {
+       printf("Erreur, %s est un tableau, impossible de mettre un int\n",$1.result->nom);
+     }
      struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
      $$.code = quadsConcat($3.code,NULL,newQuads);
      $$.type = "int";
@@ -371,109 +391,6 @@ var_int:
      $$.result->valeur_tab = translateListToTab($3.list_number);
    }
 ;
-
-
-variable:
-   IDENTIFIER
-   {
-     struct symbol* tmp = lookup(tds,$1);
-
-     if(tmp == NULL)
-     {
-       printf("ID: première utilisation de %s sans déclaration\n",$1);
-       return -1;
-     }
-
-
-     $$.result = tmp;
-     $$.code = NULL;
-
-     printf("variable -> ID\n");
-   }
-
-   | index_attribution ']'
-   {
-    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
-     $$.result = newtemp(&tds);
-     struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
-     $$.code = quadsConcat($1.code,NULL,newQuads);
-     
- 
-
-     printf("variable -> ID[expression]\n");
-   }
-  ; 
-
-
-
-variable_declaration:
-   IDENTIFIER
-   {
-     struct symbol* tmp = lookup(tds,$1);
-
-     if(tmp != NULL)
-     {
-       printf("Erreur, redéclaration de %s\n",$1);
-       exit(-1);
-     }
-
-     $$.result = add(&tds, $1, false);
-
-     //$$.result = tmp;		//TODO
-
-     printf("variable_declaration -> ID\n");
-   }
-
-   | index_declaration ']'
-   {
-     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
-     if(tmp == NULL)
-     {
-       printf("index_declaration: première utilisation de %s sans déclaration\n",$1.result->nom);
-       return -1;
-     }
-
-     if(tmp->constante == true)
-     {
-       printf("Tentative de modification d'une constante\n");
-       return -1;
-     }
- 
-     $1.result->length = $1.decal->valeur;
-     $1.result->valeur_tab =(int*) malloc($1.decal->valeur*sizeof(int));
-     printf("variable_declaration -> index_declaration ]\n");
-   }
-
-  ;
-
-
-index_declaration:
-   index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
-   {
-     add_dim($1.result,$3);
-     $$.nb_dim = $1.nb_dim+1;
-     $$.result = $1.result;
-     $$.decal->valeur = $1.decal->valeur*$3;
-
-     printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
-   }
-
-   | IDENTIFIER '[' NUMBER
-   {
-     $$.result = add(&tds,$1,false);
-     $$.result->is_array = true;
-	//TODO test si tab existe deja
-     add_dim($$.result,$3);
-     $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
-     $$.decal->valeur = $3;
-     $$.code = NULL;
-     $$.nb_dim = 1;
-
-     printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
-   }
-  ;
 
 
 list_var_stencil:
@@ -515,10 +432,110 @@ var_stencil:
      $$.result->nb_dim = $5;
      
    }
-;
+ ;
 
 
-attribution:	//utilisable que pour les var de type int
+variable:
+   IDENTIFIER
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp == NULL)
+     {
+       printf("ID: première utilisation de %s sans déclaration\n",$1);
+       return -1;
+     }
+
+
+     $$.result = tmp;
+     $$.code = NULL;
+
+     printf("variable -> ID\n");
+   }
+
+   | index_attribution ']'
+   {
+    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+
+     $$.result = newtemp(&tds);
+     struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
+     $$.code = quadsConcat($1.code,NULL,newQuads);
+     
+     printf("variable -> ID[expression]\n");
+   }
+  ; 
+
+
+
+variable_declaration:
+   IDENTIFIER
+   {
+     struct symbol* tmp = lookup(tds,$1);
+
+     if(tmp != NULL)
+     {
+       printf("Erreur, redéclaration de %s\n",$1);
+       exit(-1);
+     }
+
+     $$.result = add(&tds, $1, false);
+     $$.code = NULL;
+
+     printf("variable_declaration -> ID\n");
+   }
+
+   | index_declaration ']'
+   {
+     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
+
+     $1.result->length = $1.decal->valeur;
+     $1.result->valeur_tab = malloc($1.decal->valeur*sizeof(int));
+     $1.code = NULL;
+     printf("variable_declaration -> index_declaration ]\n");
+   }
+
+  ;
+
+
+index_declaration:
+   index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
+   {
+     add_dim($1.result,$3);
+     $$.nb_dim = $1.nb_dim+1;
+     $$.result = $1.result;
+     $$.decal->valeur = $1.decal->valeur*$3;
+     $$.code = $1.code;
+
+     printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
+   }
+
+   | IDENTIFIER '[' NUMBER
+   {
+     $$.result = add(&tds,$1,false);
+
+     if($$.result != NULL)
+     {
+       printf("Erreur, redeclaration de %s\n",$1);
+       exit(-1);
+     }
+
+
+     $$.result->is_array = true;
+     add_dim($$.result,$3);
+     $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
+     $$.decal->valeur = $3;
+     $$.code = NULL;
+     $$.nb_dim = 1;
+
+     printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
+   }
+  ;
+
+
+
+
+
+attribution:	//TODO derivation inutile
    variable_attribution '=' expression
    {
      if($1.decal == NULL)
@@ -545,24 +562,23 @@ variable_attribution:
      if(tmp == NULL)
      {
        printf("ID: première utilisation de %s sans déclaration\n",$1);
-       return -1;
+       exit(-1);
      }
 
      if(tmp->constante == true)
      {
        printf("Tentative de modification d'une constante\n");
-       return -1;
+       exit(-1);
      }
 
      $$.result = tmp;
+     $$.code = NULL;
 
      printf("variable -> ID\n");
    }
 
    | index_attribution ']'
    {
-    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
      $$ = $1;
      printf("variable -> ID[expression]\n");
    }
@@ -589,16 +605,17 @@ index_attribution:
    | IDENTIFIER '[' expression
    {
      $$.result = lookup(tds,$1);
-if($$.result == NULL)
+
+     if($$.result == NULL)
      {
        printf("index: première utilisation de %s sans déclaration\n",$1);
-       return -1;
+       exit(-1);
      }
 
      if($$.result->constante == true)
      {
-       printf("Tentative de modification d'une constante\n");
-       return -1;
+       printf("Tentative de modification de la constante %s\n",$1);
+       exit(-1);
      }
      $$.decal = $3.result;
      $$.code = $3.code;
@@ -607,6 +624,7 @@ if($$.result == NULL)
      printf("index_attribution -> ID [ expression\n");
    }
   ;
+
 
 array:
   '{' list_array '}'
@@ -620,8 +638,6 @@ array:
 list_array:
   array ',' list_array
   {
-    //TODO test dimnesion pour verifier la consistance du tableau
-  
     checkDims($1.list_dim->suivant,$3.list_dim->suivant);
 
     $$.list_dim = $1.list_dim;
@@ -633,8 +649,6 @@ list_array:
 
   | array
   {
-    //TODO
-
     $$ = $1;
     printf("list_array -> array\n");
   }
@@ -642,6 +656,7 @@ list_array:
   | list_number
   {
     $$=$1;
+    printf("list_array -> list_number\n");
   }
  ;
 
@@ -649,10 +664,6 @@ list_array:
 list_number:
   NUMBER
   {
-    //$$.result = newtemp(&tds);
-    //$$.result->valeur = $1;
-
-    //$$.code = NULL; //TODO load imediate
     struct listNumber* tmp = malloc(sizeof(struct listNumber));
     tmp->debut = NULL;
     $$.list_dim = appendToListDim(NULL,1);
@@ -664,7 +675,6 @@ list_number:
 
   | list_number ',' NUMBER
   {
-     //TODO
     $$.list_number = addNumber($1.list_number,$3);
     $$.list_dim = $1.list_dim;
     $$.list_dim->size = $1.list_dim->size + 1;
@@ -672,19 +682,7 @@ list_number:
  
   }
 
-bloc:
-   '{' line '}'
-   {
-      $$ = $2;
-     printf("bloc -> { line }\n");
-   }
 
- /*  | statement
-   {
-     $$=$1;
-     printf("bloc ->statement\n");
-   } TODO Erreur shift/reduce */ 
-;
 
 
 expression:
@@ -998,20 +996,6 @@ condition:  //condition booléenne
       printf("condition -> expression < expression\n");
     }
 
-  | TRUE
-    {
-	//XXX sert a rien? //Non, il faut pouvoir faire remonter la valeur booléenne
-      $$.result = newtemp(&tds);
-      $$.result->valeur = true;
-    }
-
-  | FALSE
-    {
-	//XXX sert a rien? //Non, il faut pouvoir faire remonter la valeur booléenne
-      $$.result = newtemp(&tds);
-      $$.result->valeur = false;
-    }
-
   | condition OR tag condition
     {
       struct symbol* tmp = newtemp(&tds);
@@ -1057,18 +1041,6 @@ condition:  //condition booléenne
   
   ;
 
-tag:
-    {
-      $$ = nextquad;
-      printf("Tag\n");
-    }
-
-tag_else:
-    {
-      nextquad++;
-      $$ = nextquad;
-      printf("Tag else\n");
-    }
 
 %%
 
