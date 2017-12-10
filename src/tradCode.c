@@ -10,11 +10,7 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 	struct symbol* curseur_tds = tds;
 	while(curseur_tds != NULL)
 	{
-		if(curseur_tds->type == LABEL_TYPE)
-		{
-		//TODO	fprintf(outputFile,"%s: .label\n",curseur_tds->name);
-		}
-		else if(curseur_tds->type == STRING_TYPE)
+		if(curseur_tds->type == STRING_TYPE)
 		{
 			fprintf(outputFile,"%s: .asciiz %s\n",curseur_tds->name,curseur_tds->string);
 		}
@@ -28,10 +24,9 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 			}
 			fprintf(outputFile,"\n");
 		}
-		else
+		else if(curseur_tds->type != LABEL_TYPE)
 		{
 			fprintf(outputFile,"%s: .word %d\n",curseur_tds->name,curseur_tds->value);
-			//XXX les nom de varialbe qui ont le meme nom que des instr posent probleme
 		}
 		curseur_tds = curseur_tds->next;
 	}
@@ -115,6 +110,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 			//free(curseur_quads->res->name);
 		}
 
+		else if(strcmp(curseur_quads->op,"return") == 0)
+		{
+			//End of the programm
+			fprintf(outputFile,"li $v0 10\nsyscall\n");
+		}
 		else
 		{
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->name);
@@ -140,9 +140,6 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		fprintf(outputFile,"%s:\n",label->name);
 		//free(label->name);
 	}
-
-	//End of the programm
-	fprintf(outputFile,"li $v0 10\nsyscall");
 
 	//Close the MIPS file
 	fclose(outputFile);

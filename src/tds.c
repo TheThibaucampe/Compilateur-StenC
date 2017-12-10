@@ -9,7 +9,7 @@ struct symbol* newtemp(struct symbol** tds)
 	snprintf(name, MAX_TAILLE_TEMP, "temp_%d",nb_temp);
 
 	//Send the properties and get the symbol of the temporary
-	struct symbol* newTemp = add_temp_label(tds, name,true);
+	struct symbol* newTemp = add(tds, name,true);
 	nb_temp++;
 	return newTemp;
 }
@@ -75,6 +75,7 @@ struct symbol* add(struct symbol** tds, char* name, int cst)
 	newSymbol->name = malloc(MAX_TAILLE_TEMP*sizeof(char));
 	snprintf(newSymbol->name,MAX_TAILLE_TEMP,"A%s",name);
 	newSymbol->is_constant = cst;
+	newSymbol->type = INT_TYPE;
 	newSymbol->next = NULL;
 
 	//If the table is empty
