@@ -24,20 +24,14 @@ int convert (char* yytext)
 		{
 			if (yytext[1] == 'b') //Binary
 			{
-				result = convertBinaryToDecimal(atoll(strstr(yytext, &yytext[2])));
-				free(yytext);
-				return result;
+				return convertBinaryToDecimal(atoll(strstr(yytext, &yytext[2])));
 			} else
 			if (yytext[1] == 'x') //Hexadecimal
 			{
-				result = (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 16);
-				free(yytext);
-				return result;
+				return (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 16);
 			} else 	//Octal
 			{ 
-				result = (int)strtol(strstr(yytext, &yytext[1]), (char **)NULL, 8);
-				free(yytext);
-				return result;
+				return (int)strtol(strstr(yytext, &yytext[1]), (char **)NULL, 8);
 			}
 		} else if (yytext[0] == '-') //Negative number
 		{
@@ -45,36 +39,24 @@ int convert (char* yytext)
       {
       	if (yytext[2] == 'b') //Binary
     		{
-    			result = convertBinaryToDecimal(atoll(strstr(yytext, &yytext[3])));
-    			free(yytext);
-        	return result;
+        	return convertBinaryToDecimal(atoll(strstr(yytext, &yytext[3])));
        	} else if (yytext[2] == 'x') //Hexadecimal
        	{
-       		result = (int)strtol(strstr(yytext, &yytext[3]), (char **)NULL, 16);
-       		free(yytext);
-       	  return result;
+       	  return (int)strtol(strstr(yytext, &yytext[3]), (char **)NULL, 16);
        	} else	//Octal
       	{
-      		result = (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 8);
-      		free(yytext);
-       	  return result;
+       	  return (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 8);
        	}
 			} else
 			{
-				result = atoi(yytext);
-				free(yytext);
-				return result;
+				return atoi(yytext);
 			}
 		} else
 		{
-			result = atoi(yytext);
-			free(yytext);
 			return atoi(yytext);
 		}
 	} else
 	{
-		result = atoi(yytext);
-		free(yytext);
 		return atoi(yytext);
 	}
 }
