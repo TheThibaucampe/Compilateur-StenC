@@ -13,13 +13,10 @@ void free_tds(struct symbol* tds)
 		{
 			if (current_symbol->type == STENCIL_TYPE)
 			{
-				printf("Je désalloue un value_tab_stenc\n");
 				free(current_symbol->value_tab_stenc);
 			} else
 			{
-				printf("Attention, je suis %s\n", current_symbol->name);
 				free_listDim(current_symbol->size_dim);
-				printf("Je désalloue un array_value\n");
 				free(current_symbol->array_value);
 			}
 		} else
