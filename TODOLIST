@@ -20,7 +20,7 @@
 -remaniement des attribut de regles			A PEU PRES
 -remaniement de la TDS					A PEU PRES
 -moins unaire verifier					OK
--factoriser regle redondante a cause du type
+-factoriser regle redondante a cause du type		OK
 -return							OK
 -controler si il y a au moin un return
 -attribution d'une expression booleenne dans var
