@@ -28,14 +28,7 @@ void free_tds(struct symbol* tds)
 				free(current_symbol->value_tab_stenc);
 			} else
 			{
-				struct dim* current_dim = current_symbol->size_dim;
-				struct dim* Bfree_dim = current_dim;
-				while (current_dim != NULL)
-				{
-					current_dim = current_dim->next;
-					free(Bfree_dim);
-					Bfree_dim = current_dim;
-				}
+				free_listDim(current_symbol->size_dim);
 				printf("Je désalloue un array_value\n");
 				free(current_symbol->array_value);
 			}
@@ -94,6 +87,19 @@ void free_listNumber(struct listNumber* lN)
 		Bfree = current;
 	}
 	free(lN);
+	return;
+}
+
+void free_listDim(struct dim* dims)
+{
+	struct dim* current_dim = dims;
+	struct dim* Bfree_dim = current_dim;
+	while (current_dim != NULL)
+	{
+		current_dim = current_dim->next;
+		free(Bfree_dim);
+		Bfree_dim = current_dim;
+	}
 	return;
 }
 

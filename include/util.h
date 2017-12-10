@@ -14,6 +14,7 @@ void free_tds(struct symbol*);
 void free_code(struct quads*);
 void free_list_quad(struct list_quads*);
 void free_listNumber(struct listNumber*);
+void free_listDim(struct dim*);
 void free_all();
 
 #endif
