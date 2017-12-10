@@ -158,8 +158,7 @@ main:
       printf("Erreur, main pas de type int\n");
       exit(-1);
     }
-    free_list_quad($5.falselist);
-    free_list_quad($5.truelist);
+
     $$=$5;
   }
 
@@ -207,7 +206,7 @@ statement:
 
     //Concaténation de la truelist de la condition
     struct symbol* tmp = newLabel(&tds,$4);
-    $$.truelist = complete_list_quads($3.truelist, tmp);
+    complete_list_quads($3.truelist, tmp);
 
     //Ajout du goto begin
     tmp = newLabel(&tds,$2);
@@ -216,28 +215,34 @@ statement:
 
     //Concaténation de la falselist de la condition
     tmp = newLabel(&tds,nextquad);
-    $$.falselist = complete_list_quads($3.falselist, tmp);
+    complete_list_quads($3.falselist, tmp);
+
+    free_list_quad($3.falselist);
+    free_list_quad($3.truelist);
   }
 
   | IF condition tag bloc
   {
     //Concaténation de la truelist de la condition
     struct symbol* tmp = newLabel(&tds,$3);
-    $$.truelist = complete_list_quads($2.truelist, tmp);
+    complete_list_quads($2.truelist, tmp);
 
     //Concaténation du code de bloc
     $$.code = quadsConcat($2.code,$4.code,NULL);
 
     //Concaténation de la falselist de la condition
     tmp = newLabel(&tds,nextquad);
-    $$.falselist = complete_list_quads($2.falselist, tmp);
+    complete_list_quads($2.falselist, tmp);
+
+    free_list_quad($2.falselist);
+    free_list_quad($2.truelist);
   }
 
   | IF condition tag bloc ELSE tag_else bloc
   {
     //Concaténation de la truelist de la condition
     struct symbol* tmp = newLabel(&tds,$3);
-    $$.truelist = complete_list_quads($2.truelist, tmp);
+    complete_list_quads($2.truelist, tmp);
 
     //Ajout d'un goto
     tmp = newLabel(&tds,nextquad);
@@ -249,8 +254,11 @@ statement:
 
     //Concaténation de la falselist de la condition
     tmp = newLabel(&tds,$6);
-    $$.falselist = complete_list_quads($2.falselist, tmp);
+    complete_list_quads($2.falselist, tmp);
     $$.code = quadsConcat(codeTmp,$7.code,NULL);
+
+    free_list_quad($2.falselist);
+    free_list_quad($2.truelist);
   }
 
   | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
@@ -261,7 +269,7 @@ statement:
 
     //Concaténation de la truelist de la condition
     struct symbol* tmp = newLabel(&tds,$13);
-    $$.truelist = complete_list_quads($6.truelist, tmp);
+    complete_list_quads($6.truelist, tmp);
     struct quads* code_tmp = quadsConcat($3.code,$6.code,$14.code);
 
     //Ajout du goto begin
@@ -271,9 +279,12 @@ statement:
 
     //Concaténation de la falselist de la condition
     tmp = newLabel(&tds,nextquad);
-    $$.falselist = complete_list_quads($6.falselist, tmp);
+    complete_list_quads($6.falselist, tmp);
     
     $$.code = code_tmp;
+
+    free_list_quad($6.falselist);
+    free_list_quad($6.truelist);
 
     printf("statement -> for\n");
   }
@@ -454,6 +465,8 @@ variable:
      return -1;
     }
 
+    free($1);
+
     $$.result = tmp;
     $$.code = NULL;
 
@@ -492,6 +505,7 @@ variable_declaration:
   {
     $1.result->length = $1.decal->value;
     $1.result->array_value = malloc($1.decal->value*sizeof(int));
+    free($1.decal);
     $1.code = NULL;
     printf("variable_declaration -> index_declaration ]\n");
   }
@@ -559,6 +573,9 @@ variable_attribution:
       printf("ID: première utilisation de %s sans déclaration\n",$1);
       exit(-1);
     }
+
+    free($1);
+
     if(tmp->is_constant == true)
     {
       printf("Tentative de modification d'une constante\n");
@@ -605,6 +622,9 @@ index_attribution:
       printf("index: première utilisation de %s sans déclaration\n",$1);
       exit(-1);
     }
+
+    free($1);
+
     if($$.result->is_constant == true)
     {
       printf("Tentative de modification de la constante %s\n",$1);
@@ -789,6 +809,9 @@ expression:
       printf("Erreur, %s n'est pas déclaré\n",$1);
       exit(-1);
     }
+
+    free($1);
+
     if(stencil->type != STENCIL_TYPE)
     {
       printf("Erreur %s n'est pas un stencil\n",$1);
@@ -835,6 +858,9 @@ expression:
       printf("Erreur, %s n'est pas déclaré\n",$4);
       exit(-1);
     }
+
+    free($4);
+
     if(stencil->type != STENCIL_TYPE)
     {
       printf("Erreur %s n'est pas un stencil\n",$4);
