@@ -48,14 +48,11 @@ int* translateListToTab(struct listNumber* list)
 
 	//Flush the linked list in the array
 	struct number* curseur = list->begin;
-	struct number* will_free = curseur;
 	int i=0;
 	while(curseur != NULL)
 	{
 		array[i] = curseur->value;
 		curseur = curseur->next;
-		free(will_free);
-		will_free = curseur;
 		i++;
 	}
 
