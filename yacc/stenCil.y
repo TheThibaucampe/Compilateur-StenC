@@ -319,6 +319,11 @@ code_line:
     {
       $$=$1;
     }
+
+    | RETURN expression
+    {
+      $$=$2;
+    }
   ;
 
 declaration:
@@ -864,12 +869,12 @@ expression:
       struct symbol* stencil = lookup(tds,$4);
       if(stencil == NULL)
       {
-	printf("Erreur, %s n'est pas déclaré\n",$1);
+	printf("Erreur, %s n'est pas déclaré\n",$4);
         exit(-1);
       }
       if(stencil->type != STENCIL_TYPE)
       {
-        printf("Erreur %s n'est pas un stencil\n",$1);
+        printf("Erreur %s n'est pas un stencil\n",$4);
         exit(-1);
       }
 
