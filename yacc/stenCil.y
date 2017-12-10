@@ -157,7 +157,9 @@ preproc:
     struct symbol* tmp = lookup(tds,$2);
     if(tmp != NULL)
     {
-      printf("Erreur, redéclaration de %s\n",$2);
+      printf("ERROR ! Redéclaration de %s\n",$2);
+      free_all();
+      lex_free();
       exit(-1);
     }
     //Add a new symbol to the table of symbols
@@ -178,7 +180,9 @@ main:
   {
     if($1 != INT_TYPE)
     {
-      printf("Erreur, main pas de type int\n");
+      printf("ERROR ! main() n'a pas de type int\n");
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -353,7 +357,7 @@ avancement_for:
 
     if(debug)
     {
-      printf("avencement_for -> attribution\n");
+      printf("avancement_for -> attribution\n");
     }
   }
 
@@ -363,7 +367,7 @@ avancement_for:
 
     if(debug)
     {
-      printf("avencement_for -> expression\n");
+      printf("avancement_for -> expression\n");
     }
   }
 ;
@@ -465,7 +469,10 @@ declaration:
   {
     if($1 != $2.result->type)
     {
-      printf("Erreur, les variables declarées ne sont pas du bon type\n");
+      printf("ERROR! Les variables declarées ne sont pas du bon type.\n");
+      free_all();
+      lex_free();
+      exit(-1);
     }
     $$=$2;
 
@@ -481,7 +488,9 @@ list_var:
   {
     if($1.result->type != $3.result->type)
     {
-      printf("Erreur, %s et %s pas de meme type\n",$1.result->name,$3.result->name);
+      printf("ERROR ! %s et %s n'ont pas le meme type\n",$1.result->name,$3.result->name);
+      free_all();
+      lex_free();
       exit(-1);
     }
     $$.code = quadsConcat($1.code,$3.code,NULL);
@@ -519,7 +528,10 @@ var:
     $$=$1;
     if($1.decal != NULL)
     {
-      printf("Erreur, %s est un tableau, impossible de mettre un int\n",$1.result->name);
+      printf("ERROR ! %s est un tableau, impossible de mettre un int\n",$1.result->name);
+      free_all();
+      lex_free();
+      exit(-1);
     }
     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
     $$.code = quadsConcat($3.code,NULL,newQuads);
@@ -535,7 +547,9 @@ var:
     $$ = $1;
     if($1.decal == NULL)
     {
-      printf("Erreur, mise de tableau dans variable int\n");
+      printf("ERROR ! Mise de tableau dans variable int\n");
+      free_all();
+      lex_free();
       exit(-1);
     }
     checkDims($1.result->size_dim,$3.list_dim->next);
@@ -555,7 +569,9 @@ var:
 
     if(tmp != NULL)
     {
-      printf("Redéclaration de %s\n",$1);
+      printf("ERROR ! Redéclaration de %s\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -589,8 +605,10 @@ variable:
 
     if(tmp == NULL)
     {
-     printf("ID: première utilisation de %s sans déclaration\n",$1);
-     return -1;
+      printf("ERROR : %s non déclaré\n",$1);
+      free_all();
+      lex_free();
+      exit(-1);
     }
 
     free($1);
@@ -624,7 +642,9 @@ variable_declaration:
 
     if(tmp != NULL)
     {
-      printf("Erreur, redéclaration de %s\n",$1);
+      printf("ERROR! Redéclaration de %s\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -674,7 +694,9 @@ index_declaration:
 
     if(tmp != NULL)
     {
-      printf("Erreur, redeclaration de %s\n",$1);
+      printf("ERROR ! Redeclaration de %s\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -722,7 +744,9 @@ variable_attribution:
 
     if(tmp == NULL)
     {
-      printf("ID: première utilisation de %s sans déclaration\n",$1);
+      printf("ERROR : %s non déclaré\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -1043,7 +1067,9 @@ expression:
     struct symbol* stencil = lookup(tds,$1);
     if(stencil == NULL)
     {
-      printf("Erreur, %s n'est pas déclaré\n",$1);
+      printf("ERROR ! %s non déclaré\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -1051,7 +1077,9 @@ expression:
 
     if(stencil->type != STENCIL_TYPE)
     {
-      printf("Erreur %s n'est pas un stencil\n",$1);
+      printf("ERROR ! %s n'est pas un stencil\n",$1);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -1096,7 +1124,9 @@ expression:
     struct symbol* stencil = lookup(tds,$4);
     if(stencil == NULL)
     {
-      printf("Erreur, %s n'est pas déclaré\n",$4);
+      printf("ERROR ! %s non déclaré\n",$4);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
@@ -1104,7 +1134,9 @@ expression:
 
     if(stencil->type != STENCIL_TYPE)
     {
-      printf("Erreur %s n'est pas un stencil\n",$4);
+      printf("ERROR ! %s n'est pas un stencil\n",$4);
+      free_all();
+      lex_free();
       exit(-1);
     }
 
