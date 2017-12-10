@@ -133,23 +133,44 @@ list_preproc:
   preproc list_preproc
   {
     $$.code = quadsConcat($1.code,$2.code,NULL);
+
+    if(debug)
+    {
+      printf("list_preproc -> preproc list_preproc\n");
+    }
   }
 
   | main
   {
     $$ = $1;
+
+    if(debug)
+    {
+      printf("list_preproc -> main\n");
+    }
   }
 ;
 
 preproc:
   PREPROC IDENTIFIER NUMBER
   {
+    struct symbol* tmp = lookup(tds,$2);
+    if(tmp != NULL)
+    {
+      printf("Erreur, redéclaration de %s\n",$2);
+      exit(-1);
+    }
     //Add a new symbol to the table of symbols
     $$.result = add(&tds,$2,true);
     $$.result->type = INT_TYPE;
     $$.result->is_array = false;
     $$.result->value = $3;
     $$.code = NULL;
+
+    if(debug)
+    {
+      printf("preproc -> ID NUMBER (%d)\n",$3);
+    }
   }
 
 main:
@@ -162,6 +183,11 @@ main:
     }
 
     $$=$5;
+
+    if(debug)
+    {
+      printf("main -> TYPE MAIN ( ) bloc\n");
+    }
   }
 
 
@@ -169,14 +195,12 @@ bloc:
   '{' line '}'
   {
     $$ = $2;
-    printf("bloc -> { line }\n");
-  }
 
- /*  | statement
-   {
-     $$=$1;
-     printf("bloc ->statement\n");
-   } TODO Erreur shift/reduce */ 
+    if(debug)
+    {
+      printf("bloc -> { line }\n");
+    }
+  }
 ;
 
 
@@ -184,13 +208,21 @@ line:
   line statement
   {
     $$.code = quadsConcat($1.code,$2.code,NULL);
-    printf("line -> statement list line\n");
+
+    if(debug)
+    {
+      printf("line -> line statement\n");
+    }
   }
 
   | statement
   {
     $$ = $1;
-    printf("line -> statement\n");
+
+    if(debug)
+    {
+      printf("line -> statement\n");
+    }
   }
 ;
 
@@ -199,7 +231,11 @@ statement:
   code_line ';'
   {
     $$=$1;
-    printf("statement -> code_line ;\n");
+
+    if(debug)
+    {
+      printf("statement -> code_line ;\n");
+    }
   }
 
   | WHILE tag condition tag bloc
@@ -221,6 +257,11 @@ statement:
 
     free_list_quad($3.falselist);
     free_list_quad($3.truelist);
+
+    if(debug)
+    {
+      printf("statement -> WHILE tag condition tag bloc\n");
+    }
   }
 
   | IF condition tag bloc
@@ -238,6 +279,11 @@ statement:
 
     free_list_quad($2.falselist);
     free_list_quad($2.truelist);
+
+    if(debug)
+    {
+      printf("statement -> IF confition tag bloc\n");
+    }
   }
 
   | IF condition tag bloc ELSE tag_else bloc
@@ -261,6 +307,11 @@ statement:
 
     free_list_quad($2.falselist);
     free_list_quad($2.truelist);
+
+    if(debug)
+    {
+      printf("statement -> IF conditio tag bloc ELSE tag_else bloc\n");
+    }
   }
 
   | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
@@ -288,7 +339,10 @@ statement:
     free_list_quad($6.falselist);
     free_list_quad($6.truelist);
 
-    printf("statement -> for\n");
+    if(debug)
+    {
+      printf("statement -> FOR ( attribution ; tag condition ; tag avancement_for ) tag bloc\n");
+    }
   }
 ;
 
@@ -296,13 +350,21 @@ avancement_for:
   attribution
   {
     $$=$1;
-    printf("avencement_for -> attribution\n");
+
+    if(debug)
+    {
+      printf("avencement_for -> attribution\n");
+    }
   }
 
   | expression
   {
     $$=$1;
-    printf("avencement_for -> expression\n");
+
+    if(debug)
+    {
+      printf("avencement_for -> expression\n");
+    }
   }
 ;
 
@@ -310,7 +372,11 @@ avancement_for:
 tag:
   {
     $$ = nextquad;
-    printf("Tag\n");
+
+    if(debug)
+    {
+      printf("Tag\n");
+    }
   }
 ;
 
@@ -318,7 +384,11 @@ tag_else:
   {
     nextquad++;
     $$ = nextquad;
-    printf("Tag else\n");
+
+    if(debug)
+    {
+      printf("Tag else\n");
+    }
   }
 ;
 
@@ -326,13 +396,21 @@ code_line:
   attribution
   {
     $$=$1;
-    printf("code_ligne -> attribution\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> attribution\n");
+    }
   }
 
   | declaration
   {
     $$ = $1;
-    printf("code_ligne -> declaration\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> declaration\n");
+    }
   }
 
   | PRINTF '(' STRING ')'
@@ -341,20 +419,32 @@ code_line:
     tmp->string = $3;
     tmp->type = STRING_TYPE;
     $$.code = quadsGen("printf",NULL,NULL,tmp);
-    printf("code_ligne -> PRINTF '(' STRING ')'\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> PRINTF '(' STRING ')'\n");
+    }
   }
 
   | PRINTI '(' variable ')'
   {
     struct quads* newQuads = quadsGen("printi",NULL,NULL,$3.result);
     $$.code = quadsConcat($3.code,NULL,newQuads);
-    printf("code_ligne -> PRINTI '(' variable ')'\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> PRINTI '(' variable ')'\n");
+    }
   }
 
   | expression
   {
     $$=$1;
-    printf("code_ligne -> expression\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> expression\n");
+    }
   }
 
   | RETURN expression
@@ -362,7 +452,11 @@ code_line:
     $$=$2;
     struct quads* newQuads = quadsGen("return",NULL,NULL,$2.result);
     $$.code = quadsConcat($2.code,newQuads,NULL);
-    printf("code_ligne -> RETURN expression\n");
+
+    if(debug)
+    {
+      printf("code_ligne -> RETURN expression\n");
+    }
   }
 ;
 
@@ -374,7 +468,11 @@ declaration:
       printf("Erreur, les variables declarées ne sont pas du bon type\n");
     }
     $$=$2;
-    printf("declaration -> INT list_var_int\n");
+
+    if(debug)
+    {
+      printf("declaration -> TYPE list_var\n");
+    }
   }
 ;
 
@@ -387,13 +485,21 @@ list_var:
       exit(-1);
     }
     $$.code = quadsConcat($1.code,$3.code,NULL);
-    printf("list_var_int -> list_var_int var_int\n");
+
+    if(debug)
+    {
+      printf("list_var -> var , list_var\n");
+    }
   }
 
   | var
   {
     $$=$1;
-    printf("list_var_int -> var_int\n");
+
+    if(debug)
+    {
+      printf("list_var -> var\n");
+    }
   }
 ;
 
@@ -401,7 +507,11 @@ var:
   variable_declaration
   {
     $$=$1;
-    printf("var_int -> variable_declaration\n");
+
+    if(debug)
+    {
+      printf("var -> variable_declaration\n");
+    }
   }
 
   | variable_declaration '=' expression
@@ -414,7 +524,10 @@ var:
     struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
     $$.code = quadsConcat($3.code,NULL,newQuads);
 
-    printf("var_int -> variable = expression\n");
+    if(debug)
+    {
+      printf("var -> variable_declaration = expression\n");
+    }
   }
 
   | variable_declaration '=' array
@@ -429,6 +542,11 @@ var:
     free_listDim($3.list_dim);
     $$.result->array_value = translateListToTab($3.list_number,$1.result->array_value);
     free_listNumber($3.list_number);
+
+    if(debug)
+    {
+      printf("var -> variable_declaration = array\n");
+    }
   }
 
   | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
@@ -455,6 +573,11 @@ var:
     $$.result->is_array = true;
     $$.result->radius = $3;
     $$.result->nb_dim = $5;
+
+    if(debug)
+    {
+      printf("var -> ID { NUMBER , NUMBER } = array\n");
+    }
   }
 ;
 
@@ -475,7 +598,10 @@ variable:
     $$.result = tmp;
     $$.code = NULL;
 
-    printf("variable -> ID\n");
+    if(debug)
+    {
+      printf("variable -> ID\n");
+    }
   }
 
   | index_attribution ']'
@@ -484,7 +610,10 @@ variable:
     struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
     $$.code = quadsConcat($1.code,NULL,newQuads);
 
-    printf("variable -> ID[expression]\n");
+    if(debug)
+    {
+      printf("variable -> index_attribution ]\n");
+    }
   }
 ; 
 
@@ -503,7 +632,10 @@ variable_declaration:
     $$.result->type = INT_TYPE;
     $$.code = NULL;
 
-    printf("variable_declaration -> ID\n");
+    if(debug)
+    {
+      printf("variable_declaration -> ID\n");
+    }
   }
 
   | index_declaration ']'
@@ -512,7 +644,11 @@ variable_declaration:
     $1.result->array_value = malloc($1.decal->value*sizeof(int));
     free($1.decal);
     $1.code = NULL;
-    printf("variable_declaration -> index_declaration ]\n");
+
+    if(debug)
+    {
+      printf("variable_declaration -> index_declaration ]\n");
+    }
   }
 ;
 
@@ -525,7 +661,11 @@ index_declaration:
     $$.decal->value = $1.decal->value*$3;
     $$.code = $1.code;
 
-    printf("index_declaration -> index_declaration , NUMBER (%d)\n",$3);
+
+    if(debug)
+    {
+      printf("index_declaration -> index_declaration DIM_SEPARATOR NUMBER (%d)\n",$3);
+    }
   }
 
   | IDENTIFIER '[' NUMBER
@@ -546,7 +686,10 @@ index_declaration:
     $$.code = NULL;
     $$.nb_dim = 1;
 
-    printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
+    if(debug)
+    {
+      printf("index_declaration -> ID [ NUMBER (%d)\n",$3);
+    }
   }
 ;
 
@@ -564,7 +707,11 @@ attribution:	//TODO derivation inutile
       struct quads* newQuads = quadsGen("store_into_tab",$3.result,$1.decal,$1.result);
       $$.code = quadsConcat($1.code,$3.code,newQuads);
     }
-    printf("attribution -> variable = expression\n");
+
+    if(debug)
+    {
+      printf("attribution -> variable_attribution = expression\n");
+    }
   }
 ;
 
@@ -590,13 +737,20 @@ variable_attribution:
     $$.result = tmp;
     $$.code = NULL;
 
-    printf("variable -> ID\n");
+    if(debug)
+    {
+      printf("variable -> ID\n");
+    }
   }
 
   | index_attribution ']'
   {
     $$ = $1;
-    printf("variable -> ID[expression]\n");
+
+    if(debug)
+    {
+      printf("variable -> index_attribution ]\n");
+    }
   }
 ;
 
@@ -615,7 +769,10 @@ index_attribution:
     $$.result = $1.result;
     $$.decal = tmp2;
 
-    printf("index_attribution -> index_attribution , expression\n");
+    if(debug)
+    {
+      printf("index_attribution -> index_attribution DIM_SEPARATOR expression\n");
+    }
   }
 
   | IDENTIFIER '[' expression
@@ -640,7 +797,11 @@ index_attribution:
     $$.code = $3.code;
     $$.nb_dim = 1;
 
-    printf("index_attribution -> ID [ expression\n");
+    if(debug)
+    {
+      printf("index_attribution -> ID [ expression\n");
+    }
+
   }
 ;
 
@@ -650,7 +811,10 @@ array:
     $$ = $2;
     $$.list_dim = appendToListDim($2.list_dim,1);
     
-    printf("array -> list_array\n");
+    if(debug)
+    {
+      printf("array -> list_array\n");
+    }
   }
 ;
 
@@ -663,19 +827,30 @@ list_array:
     $$.list_dim->size = $3.list_dim->size + 1;
     $$.list_number = concatListNumber($1.list_number,$3.list_number);
 
-    printf("list_array -> array ',' list_array\n");
+    if(debug)
+    {
+      printf("list_array -> array ',' list_array\n");
+    }
   }
 
   | array
   {
     $$ = $1;
-    printf("list_array -> array\n");
+
+    if(debug)
+    {
+      printf("list_array -> array\n");
+    }
   }
 
   | list_number
   {
     $$=$1;
-    printf("list_array -> list_number\n");
+
+    if(debug)
+    {
+      printf("list_array -> list_number\n");
+    }
   }
 ;
 
@@ -687,7 +862,11 @@ list_number:
     $$.list_dim = appendToListDim(NULL,1);
     $$.list_number = addNumber(tmp,$1);
     $$.width = 1;
-    printf("list_array -> NUMBER (%d)\n", $1);
+
+    if(debug)
+    {
+      printf("list_array -> NUMBER (%d)\n", $1);
+    }
 
   }
 
@@ -696,7 +875,11 @@ list_number:
     $$.list_number = addNumber($1.list_number,$3);
     $$.list_dim = $1.list_dim;
     $$.list_dim->size = $1.list_dim->size + 1;
-    printf("list_array -> NUMBER ',' list_array\n");
+
+    if(debug)
+    {
+      printf("list_array -> NUMBER ',' list_array\n");
+    }
  
   }
 ;
@@ -707,7 +890,11 @@ expression:
     $$.result = newtemp(&tds);
     struct quads* newQuads = quadsGen("addu",$1.result,$3.result,$$.result);
     $$.code = quadsConcat($1.code,$3.code,newQuads);
-    printf("expression -> expression + expression\n");
+
+    if(debug)
+    {
+      printf("expression -> expression + expression\n");
+    }
   }
 
   | expression '-' expression
@@ -715,7 +902,11 @@ expression:
     $$.result = newtemp(&tds);
     struct quads* newQuads = quadsGen("subu",$1.result,$3.result,$$.result);
     $$.code = quadsConcat($1.code,$3.code,newQuads);
-    printf("expression -> expression - expression\n");
+
+    if(debug)
+    {
+      printf("expression -> expression - expression\n");
+    }
   }
 
   | expression '/' expression
@@ -723,7 +914,11 @@ expression:
     $$.result = newtemp(&tds);
     struct quads* newQuads = quadsGen("div",$1.result,$3.result,$$.result);
     $$.code = quadsConcat($1.code,$3.code,newQuads);
-    printf("expression -> expression / expression\n");
+
+    if(debug)
+    {
+      printf("expression -> expression / expression\n");
+    }
   }
 
   | expression '*' expression
@@ -731,13 +926,22 @@ expression:
     $$.result = newtemp(&tds);
     struct quads* newQuads = quadsGen("mul",$1.result,$3.result,$$.result);
     $$.code = quadsConcat($1.code,$3.code,newQuads);
-    printf("expression -> expression * expression\n");
+
+    if(debug)
+    {
+      printf("expression -> expression * expression\n");
+    }
   }
 
   | '(' expression ')'
   {
     $$=$2;
-    printf("expression -> ( expression )\n");
+
+    if(debug)
+    {
+      printf("expression -> ( expression )\n");
+    }
+
   }
 
   | '-' expression
@@ -747,7 +951,11 @@ expression:
     arg1->value = 0;
     struct quads* newQuads= quadsGen("subu",arg1,$2.result,$$.result);
     $$.code = quadsConcat(NULL,$2.code,newQuads);
-    printf("expression -> - expression\n");
+
+    if(debug)
+    {
+      printf("expression -> - expression\n");
+    }
 
   }
   | INCR expression
@@ -757,7 +965,11 @@ expression:
     arg->value = 1;
     struct quads* newQuads= quadsGen("addu",$2.result,arg,$2.result);
     $$.code = quadsConcat(NULL,$2.code,newQuads);
-    printf("expression -> ++ expression\n");
+
+    if(debug)
+    {
+      printf("expression -> ++ expression\n");
+    }
   }
 
   | DECR expression
@@ -767,7 +979,11 @@ expression:
     arg->value = 1;
     struct quads* newQuads= quadsGen("subu",$2.result,arg,$2.result);
     $$.code = quadsConcat(NULL,$2.code,newQuads);
-    printf("expression -> -- expression\n");
+
+    if(debug)
+    {
+      printf("expression -> -- expression\n");
+    }
   }
 
   | expression INCR
@@ -777,7 +993,11 @@ expression:
     arg->value = 1;
     struct quads* newQuads= quadsGen("addu",$1.result,arg,$1.result);
     $$.code = quadsConcat(NULL,$1.code,newQuads);
-    printf("expression -> expression ++\n");
+
+    if(debug)
+    {
+      printf("expression -> expression ++\n");
+    }
   }
 
   | expression DECR
@@ -787,7 +1007,11 @@ expression:
     arg->value = 1;
     struct quads* newQuads= quadsGen("subu",$1.result,arg,$1.result);
     $$.code = quadsConcat(NULL,$1.code,newQuads);
-    printf("expression -> expression --\n");
+
+    if(debug)
+    {
+      printf("expression -> expression --\n");
+    }
 
   }
 
@@ -795,7 +1019,11 @@ expression:
   {
     $$.result = $1.result;
     $$.code = $1.code;
-    printf("expression -> variable\n");
+
+    if(debug)
+    {
+      printf("expression -> variable\n");
+    }
   }
 
   | NUMBER
@@ -803,7 +1031,11 @@ expression:
     $$.result = newtemp(&tds);
     $$.result->value = $1;
     $$.code = NULL;
-    printf("expression -> NUMBER (%d)\n", $1);
+
+    if(debug)
+    {
+      printf("expression -> NUMBER (%d)\n", $1);
+    }
   }
 
   | IDENTIFIER '$' index_attribution ']'
@@ -852,7 +1084,11 @@ expression:
     }
 
     $$.result = tmp5;
-    printf("expression -> ID $ index_attribution ]\n");
+
+    if(debug)
+    {
+      printf("expression -> ID $ index_attribution ]\n");
+    }
   }
 
   | index_attribution ']' '$' IDENTIFIER
@@ -901,7 +1137,11 @@ expression:
     }
 
     $$.result = tmp5;
-    printf("expression -> index_attribution ] $ ID\n");
+
+    if(debug)
+    {
+      printf("expression -> index_attribution ] $ ID\n");
+    }
   }
 ;
 
@@ -916,7 +1156,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression == expression\n");
+    if(debug)
+    {
+      printf("condition -> expression == expression\n");
+    }
   }
 
   | expression NOTEQUAL expression
@@ -929,7 +1172,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression != expression\n");
+    if(debug)
+    {
+      printf("condition -> expression != expression\n");
+    }
   }
 
   | expression GREATEREQ expression
@@ -942,7 +1188,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression >= expression\n");
+    if(debug)
+    {
+      printf("condition -> expression >= expression\n");
+    }
   }
 
   | expression '>' expression
@@ -955,7 +1204,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression > expression\n");
+    if(debug)
+    {
+      printf("condition -> expression > expression\n");
+    }
   }
 
   | expression LOWEREQ expression
@@ -968,7 +1220,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression <= expression\n");
+    if(debug)
+    {
+      printf("condition -> expression <= expression\n");
+    }
   }
 
   | expression '<' expression
@@ -981,7 +1236,10 @@ condition:  //condition booléenne
     $$.falselist = new_list_quads(newQuads);
     $$.code = quadsConcat(tmp,NULL,newQuads);
 
-    printf("condition -> expression < expression\n");
+    if(debug)
+    {
+      printf("condition -> expression < expression\n");
+    }
   }
 
   | condition OR tag condition
@@ -993,7 +1251,10 @@ condition:  //condition booléenne
     $$.truelist = concat_list_quads($1.truelist, $4.truelist);
     $$.falselist = $4.falselist;
 
-    printf("condition -> condition || tag condition\n");
+    if(debug)
+    {
+      printf("condition -> condition || tag condition\n");
+    }
   }
 
   | condition AND tag condition
@@ -1005,7 +1266,10 @@ condition:  //condition booléenne
     $$.falselist = concat_list_quads($1.falselist, $4.falselist);
     $$.truelist = $4.truelist;
 
-    printf("condition -> condition && tag condition\n");
+    if(debug)
+    {
+      printf("condition -> condition && tag condition\n");
+    }
   }
 
   | '!' condition
@@ -1014,13 +1278,20 @@ condition:  //condition booléenne
     $$.falselist = $2.truelist;
     $$.truelist = $2.falselist;
 
-    printf("condition -> ! condition\n");
+    if(debug)
+    {
+      printf("condition -> ! condition\n");
+    }
   }
 
   | '(' condition ')'
   {
     $$ = $2;
-    printf("condition -> (condition)\n");
+
+    if(debug)
+    {
+      printf("condition -> (condition)\n");
+    }
   }
 ;
 
@@ -1041,7 +1312,6 @@ int main(int argc, char* argv[]) {
   }
 
 
-  printf("Enter a C statement:\n");
   yyparse();
   if(debug)
   {
