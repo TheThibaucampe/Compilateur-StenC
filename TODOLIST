@@ -25,3 +25,4 @@
 -factoriser regle redondante a cause du type
 -return
 -attribution d'un expression booleenne dans var
+-variable initialisé de base ou pas?
