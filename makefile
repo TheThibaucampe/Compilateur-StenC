@@ -25,6 +25,11 @@ src/lex.yy.c: lex/$(EXEC).l
 obj/%.o: src/%.c
 	$(CC) -g -o $@ -c $< $(CFLAGS)
 
+ifeq ($(UNAME_S),Darwin)
 clean:
-	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil y.output out.s
+	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil y.output
 	rm -r stenCil.dSYM
+else
+clean:
+	rm obj/*.o src/y.tab.c include/y.tab.h src/lex.yy.c stenCil y.output
+endif
