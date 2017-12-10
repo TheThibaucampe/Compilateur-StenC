@@ -92,7 +92,6 @@ void free_listNumber(struct listNumber* lN)
 
 void free_listDim(struct dim* dims)
 {
-	int i = 1;
 	struct dim* current_dim = dims;
 	struct dim* Bfree_dim = current_dim;
 	while (current_dim != NULL)
@@ -100,7 +99,7 @@ void free_listDim(struct dim* dims)
 		current_dim = current_dim->next;
 		free(Bfree_dim);
 		Bfree_dim = current_dim;
-		printf("Tour = %d\n", i);
+		printf("Size = %d\n", current_dim->size);
 	}
 	return;
 }
