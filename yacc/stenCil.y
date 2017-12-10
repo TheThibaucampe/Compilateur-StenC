@@ -1,6 +1,7 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
+  #include "enum.h"
   #include "tds.h"
   #include "quads.h"
   #include "list_quads.h"
@@ -304,7 +305,7 @@ code_line:
     {
       struct symbol* tmp = newtemp(&tds);
       tmp->string = $3;
-      tmp->is_string = 1;
+      tmp->type = STRING;
       $$.code = quadsGen("printf",NULL,NULL,tmp);
     }
 
@@ -565,7 +566,7 @@ variable_attribution:
        exit(-1);
      }
 
-     if(tmp->constante == true)
+     if(tmp->is_constante == true)
      {
        printf("Tentative de modification d'une constante\n");
        exit(-1);
@@ -612,7 +613,7 @@ index_attribution:
        exit(-1);
      }
 
-     if($$.result->constante == true)
+     if($$.result->is_constante == true)
      {
        printf("Tentative de modification de la constante %s\n",$1);
        exit(-1);

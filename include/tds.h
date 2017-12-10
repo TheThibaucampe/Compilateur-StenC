@@ -7,14 +7,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "enum.h"
 
 
 struct symbol{
 	char* nom;
-	int constante;
-	int label;
-	int is_string;
+	int is_constante;
 	int is_array;
+	int type;
 	union {
 		int valeur;
 		char* string;

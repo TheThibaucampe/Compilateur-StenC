@@ -3,6 +3,7 @@
 
 #include "quads.h"
 #include "tds.h"
+#include "enum.h"
 
 void tradCodeFinal(char*, struct quads*,struct symbol*);
 

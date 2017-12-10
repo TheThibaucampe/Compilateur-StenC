@@ -10,11 +10,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 
 	while(curseur_tds != NULL)
 	{
-		if(curseur_tds->label == 1)
+		if(curseur_tds->type == LABEL_TYPE)
 		{
-		//	fprintf(outputFile,"%s: .label\n",curseur_tds->nom);
+		//TODO	fprintf(outputFile,"%s: .label\n",curseur_tds->nom);
 		}
-		else if(curseur_tds->is_string)
+		else if(curseur_tds->type == STRING_TYPE)
 		{
 			fprintf(outputFile,"%s: .asciiz %s\n",curseur_tds->nom,curseur_tds->string);
 		}
