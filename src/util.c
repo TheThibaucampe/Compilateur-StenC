@@ -3,23 +3,12 @@
 extern struct symbol* tds;
 extern struct quads* quadsFinal;
 
-/*void print_error(int type, char* message)
-{
-	switch(type)
-	{
-		//TODO
-		default:
-			return;
-	}
-}*/
-
 void free_tds(struct symbol* tds)
 {
 	struct symbol* current_symbol = tds;
 	struct symbol* Bfree_symbol= current_symbol;
 	while (current_symbol != NULL)
-	{
-		
+	{	
 		if (current_symbol->is_array)
 		{
 			if (current_symbol->type == STENCIL_TYPE)
@@ -97,7 +86,6 @@ void free_listDim(struct dim* dims)
 	struct dim* Bfree_dim = current_dim;
 	while (current_dim != NULL)
 	{
-		printf("Size = %d\n", current_dim->size);
 		current_dim = current_dim->next;
 		free(Bfree_dim);
 		Bfree_dim = current_dim;
@@ -107,10 +95,6 @@ void free_listDim(struct dim* dims)
 
 void free_all()
 {
-	printf("Début du free quad\n");
 	free_code(quadsFinal);
-	printf("Fin du free quad\n");
-	printf("Début du free tds\n");
 	free_tds(tds);
-	printf("Fin du free tds\n");
 }

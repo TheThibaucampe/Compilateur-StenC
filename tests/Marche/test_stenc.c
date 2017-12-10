@@ -10,4 +10,6 @@ int main()
 	int resultat = s $ image[1][1][1];
 
 	printi(resultat);
+
+	return 0;
 }
