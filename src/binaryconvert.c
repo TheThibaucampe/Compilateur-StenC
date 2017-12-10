@@ -17,20 +17,27 @@ int convertBinaryToDecimal(long long n)
 //Convert a string into a decimal
 int convert (char* yytext)
 {
+	int result = 0;
 	if (strlen(yytext) >= 2)
 	{
 		if (yytext[0] == '0') //Conversion incoming !
 		{
 			if (yytext[1] == 'b') //Binary
 			{
-				return convertBinaryToDecimal(atoll(strstr(yytext, &yytext[2])));
+				result = convertBinaryToDecimal(atoll(strstr(yytext, &yytext[2])));
+				free(yytext);
+				return result;
 			} else
 			if (yytext[1] == 'x') //Hexadecimal
 			{
-				return (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 16);
+				result = (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 16);
+				free(yytext);
+				return result;
 			} else 	//Octal
 			{ 
-				return (int)strtol(strstr(yytext, &yytext[1]), (char **)NULL, 8);
+				result = (int)strtol(strstr(yytext, &yytext[1]), (char **)NULL, 8);
+				free(yytext);
+				return result;
 			}
 		} else if (yytext[0] == '-') //Negative number
 		{
@@ -38,24 +45,36 @@ int convert (char* yytext)
       {
       	if (yytext[2] == 'b') //Binary
     		{
-        	return convertBinaryToDecimal(atoll(strstr(yytext, &yytext[3])));
+    			result = convertBinaryToDecimal(atoll(strstr(yytext, &yytext[3])));
+    			free(yytext);
+        	return result;
        	} else if (yytext[2] == 'x') //Hexadecimal
        	{
-       	  return (int)strtol(strstr(yytext, &yytext[3]), (char **)NULL, 16);
+       		result = (int)strtol(strstr(yytext, &yytext[3]), (char **)NULL, 16);
+       		free(yytext);
+       	  return result;
        	} else	//Octal
       	{
-       	  return (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 8);
+      		result = (int)strtol(strstr(yytext, &yytext[2]), (char **)NULL, 8);
+      		free(yytext);
+       	  return result;
        	}
 			} else
 			{
-				return atoi(yytext);
+				result = atoi(yytext);
+				free(yytext);
+				return result;
 			}
 		} else
 		{
+			result = atoi(yytext);
+			free(yytext);
 			return atoi(yytext);
 		}
 	} else
 	{
+		result = atoi(yytext);
+		free(yytext);
 		return atoi(yytext);
 	}
 }
