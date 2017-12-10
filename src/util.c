@@ -19,7 +19,7 @@ void free_tds(struct symbol* tds)
 	struct symbol* Bfree_symbol= current_symbol;
 	while (current_symbol != NULL)
 	{
-		free(current_symbol->name);
+		
 		if (current_symbol->is_array)
 		{
 			if (current_symbol->type == STENCIL_TYPE)
@@ -28,6 +28,7 @@ void free_tds(struct symbol* tds)
 				free(current_symbol->value_tab_stenc);
 			} else
 			{
+				printf("Attention, je suis %d\n", current_symbol->name);
 				free_listDim(current_symbol->size_dim);
 				printf("Je désalloue un array_value\n");
 				free(current_symbol->array_value);
@@ -39,7 +40,7 @@ void free_tds(struct symbol* tds)
 				free(current_symbol->string);
 			}
 		}
-
+		free(current_symbol->name);
 		current_symbol = current_symbol->next;
 		free(Bfree_symbol);
 		Bfree_symbol = current_symbol;
