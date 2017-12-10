@@ -10,8 +10,6 @@ int total_element(int radius, int dim)
  * This function will be used to compute the address of an element of an multidimentional array from a basis element
  * More specificaly, it wille be used for the stencil operation
  * It has been built from the formula of access in the Dragon Book, and has been modified as a formula of Horner
- *
- *
  */
 int decalage(struct dim* dims, int radius, int nb_dim, int r)
 {

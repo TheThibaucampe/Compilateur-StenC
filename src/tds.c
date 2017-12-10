@@ -196,4 +196,3 @@ void print(struct symbol* tds)
 		curseur = curseur->next;
 	}
 }
-#include "tds.h"
