@@ -1,11 +1,9 @@
-#define HEIGHT 5
-#define WIDTH 5
 int main() {
 	int i, j;
 	int gx, gy;
 	int image[HEIGHT][WIDTH]; // Image originale en niveaux de gris.
 	int sobel[HEIGHT][WIDTH]; // Image transformée.
-	//Probleme image non initialisée
+
 	stencil gx {1,2} = {{ 1, 0,-1},{ 2, 0,-2},{ 1, 0,-1}};
   
   // Filtre Sobel
