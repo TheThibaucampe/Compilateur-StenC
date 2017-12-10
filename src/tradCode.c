@@ -41,7 +41,7 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 
 	//Go through the list of quads and flush it into the MIPS file
 	struct quads* curseur_quads = quads;
-	struct quads* will_free_quads = curseur_quads;
+	//struct quads* will_free_quads = curseur_quads;
 	struct symbol* label;
 	int instr_cmpt = 1;
 	while(curseur_quads != NULL)
@@ -49,87 +49,87 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		if((label = lookup_label(tds,instr_cmpt)) != NULL)
 		{
 			fprintf(outputFile,"%s:\n",label->name);
-			free(label->name);
+			//free(label->name);
 		}
 
 		if(strcmp(curseur_quads->op,"j") == 0)
 		{
 			fprintf(outputFile,"j %s\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"printi") == 0)
 		{
 			fprintf(outputFile,"lw $a0 %s\nli $v0 1\nsyscall\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"printf") == 0)
 		{
 			fprintf(outputFile,"la $a0 %s\nli $v0 4\nsyscall\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"move") == 0)
 		{
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->name);
-			free(curseur_quads->arg1->name);
+			//free(curseur_quads->arg1->name);
 			fprintf(outputFile,"move $t1 $t0\n");
 			fprintf(outputFile,"sw $t1 %s\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"beq") == 0 ||strcmp(curseur_quads->op,"bne") == 0 ||strcmp(curseur_quads->op,"ble") == 0 ||strcmp(curseur_quads->op,"blt") == 0 ||strcmp(curseur_quads->op,"bge") == 0 ||strcmp(curseur_quads->op,"bgt") == 0)
 		{
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->name);
-			free(curseur_quads->arg1->name);
+			//free(curseur_quads->arg1->name);
 			fprintf(outputFile,"lw $t1 %s\n",curseur_quads->arg2->name);
-			free(curseur_quads->arg2->name);
+			//free(curseur_quads->arg2->name);
 			fprintf(outputFile,"%s $t0 $t1 %s\n",curseur_quads->op,curseur_quads->res->name);
-			free(curseur_quads->op);free(curseur_quads->res->name);
+			//free(curseur_quads->op);free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"store_into_tab") == 0)
 		{
 //			fprintf(outputFile,"la $t0 %s\n",curseur_quads->res->name);
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg2->name);
-			free(curseur_quads->arg2->name);
+			//free(curseur_quads->arg2->name);
 			fprintf(outputFile,"li $t1 4\n");
 			fprintf(outputFile,"mul $t0 $t0 $t1\n");
 			fprintf(outputFile,"lw $t2 %s\n",curseur_quads->arg1->name);
-			free(curseur_quads->arg1->name);
+			//free(curseur_quads->arg1->name);
 			fprintf(outputFile,"sw $t2 %s($t0)\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else if(strcmp(curseur_quads->op,"load_from_tab") == 0)
 		{
 //			fprintf(outputFile,"la $t0 %s\n",curseur_quads->res->name);
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg2->name);
-			free(curseur_quads->arg2->name);
+			//free(curseur_quads->arg2->name);
 			fprintf(outputFile,"li $t1 4\n");
 			fprintf(outputFile,"mul $t0 $t0 $t1\n");
 			fprintf(outputFile,"lw $t2 %s($t0)\n",curseur_quads->arg1->name);
-			free(curseur_quads->arg1->name);
+			//free(curseur_quads->arg1->name);
 			fprintf(outputFile,"sw $t2 %s\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		else
 		{
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->name);
-			free(curseur_quads->arg1->name);
+			//free(curseur_quads->arg1->name);
 			fprintf(outputFile,"lw $t1 %s\n",curseur_quads->arg2->name);
-			free(curseur_quads->arg2->name);
+			//free(curseur_quads->arg2->name);
 			fprintf(outputFile,"%s $t2 $t0 $t1\n",curseur_quads->op);
-			free(curseur_quads->op);
+			//free(curseur_quads->op);
 			fprintf(outputFile,"sw $t2 %s\n",curseur_quads->res->name);
-			free(curseur_quads->res->name);
+			//free(curseur_quads->res->name);
 		}
 
 		curseur_quads = curseur_quads->next;
-		free(will_free_quads);
-		will_free_quads = curseur_quads;
+		//free(will_free_quads);
+		//will_free_quads = curseur_quads;
 
 		instr_cmpt++;
 
@@ -138,7 +138,7 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 	if((label = lookup_label(tds,instr_cmpt)) != NULL)
 	{
 		fprintf(outputFile,"%s:\n",label->name);
-		free(label->name);
+		//free(label->name);
 	}
 
 	//End of the programm
