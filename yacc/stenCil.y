@@ -319,7 +319,6 @@ statement:
   }
 
   | FOR '(' attribution ';' tag condition ';' tag avancement_for tag {nextquad-=($10-$8);} ')' tag bloc
-  //TODO avancement for pourrai etre un code line??
   {
     //Nouveau calcul du nextquad
     nextquad+=($10-$8);
@@ -715,12 +714,11 @@ index_declaration:
   }
 ;
 
-attribution:	//TODO derivation inutile
+attribution:
   variable_attribution '=' expression
   {
     if($1.decal == NULL)
     {
-      //$$.result = add(&tds,$1,false);	//XXX opti: soit add ou renomage
       struct quads* newQuads = quadsGen("move",$3.result,NULL,$1.result);
       $$.code = quadsConcat($3.code,NULL,newQuads);
     }
