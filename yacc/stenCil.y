@@ -9,9 +9,11 @@
   #include "dim.h"
   #include "listNumber.h"
   #include "stencil.h"
+  #include "util.h"
 
   void yyerror(char*);
   int yylex();
+  void lex_free();
 
   struct symbol* tds = NULL;
   struct quads* quadsFinal = NULL;
@@ -140,6 +142,7 @@ list_preproc:
 preproc:
   PREPROC IDENTIFIER NUMBER
   {
+    //Add a new symbol to the table of symbols
     $$.result = add(&tds,$2,true);
     $$.result->type = INT_TYPE;
     $$.result->is_array = false;
@@ -155,6 +158,8 @@ main:
       printf("Erreur, main pas de type int\n");
       exit(-1);
     }
+    free_list_quad($5.falselist);
+    free_list_quad($5.truelist);
     $$=$5;
   }
 
@@ -409,6 +414,7 @@ var:
     }
     checkDims($1.result->size_dim,$3.list_dim->next);
     $$.result->array_value = translateListToTab($3.list_number);
+    free_listNumber($3.list_number);
   }
 
   | IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
@@ -428,6 +434,7 @@ var:
 
     $$.result->array_value = translateListToTab($8.list_number); 
     $$.result->length = $8.list_number->size;
+    free_listNumber($8.list_number);
 
     $$.result->is_array = true;
     $$.result->radius = $3;
@@ -446,7 +453,6 @@ variable:
      printf("ID: première utilisation de %s sans déclaration\n",$1);
      return -1;
     }
-
 
     $$.result = tmp;
     $$.code = NULL;
@@ -492,7 +498,7 @@ variable_declaration:
 ;
 
 index_declaration:
-  index_declaration DIM_SEPARATOR NUMBER	//TODO calcul des expression
+  index_declaration DIM_SEPARATOR NUMBER
   {
     add_dim($1.result,$3);
     $$.nb_dim = $1.nb_dim+1;
@@ -695,7 +701,6 @@ expression:
     printf("expression -> expression / expression\n");
   }
 
-
   | expression '*' expression
   { 
     $$.result = newtemp(&tds);
@@ -722,7 +727,6 @@ expression:
   }
   | INCR expression
   {
-    //XXX instr addi
     $$.result = $2.result;
     struct symbol* arg = newtemp(&tds);
     arg->value = 1;
@@ -733,7 +737,6 @@ expression:
 
   | DECR expression
   {
-    //XXX instr subi
     $$.result = $2.result;
     struct symbol* arg = newtemp(&tds);
     arg->value = 1;
@@ -744,7 +747,6 @@ expression:
 
   | expression INCR
   {
-    //XXX instr addi
     $$.result = $1.result;
     struct symbol* arg = newtemp(&tds);
     arg->value = 1;
@@ -755,7 +757,6 @@ expression:
 
   | expression DECR
   {
-    //XXX instr subi
     $$.result = $1.result;
     struct symbol* arg = newtemp(&tds);
     arg->value = 1;
@@ -1010,10 +1011,8 @@ int main() {
   tradCodeFinal("out.s",quadsFinal,tds);
 
   //Free
-
-
-
-  //lex_free();
+  free_all();
+  lex_free();
 
   return 0;
 }
