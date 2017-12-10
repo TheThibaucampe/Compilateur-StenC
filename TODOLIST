@@ -21,6 +21,7 @@
 -verification des regle (passage des attributs)
 -remaniement des attribut de regles
 -remaniement de la TDS
--moins unaire verifier
+-moins unaire verifier					OK
 -factoriser regle redondante a cause du type
 -return
+-attribution d'un expression booleenne dans var
