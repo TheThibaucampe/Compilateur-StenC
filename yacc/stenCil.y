@@ -315,6 +315,8 @@ code_line:
   | RETURN expression
   {
     $$=$2;
+    struct quads* newQuads = quadsGen("return",NULL,NULL,$2.result);
+    $$.code = quadsConcat($2.code,newQuads,NULL);
     printf("code_ligne -> RETURN expression\n");
   }
 ;

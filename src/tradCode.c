@@ -110,6 +110,11 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 			//free(curseur_quads->res->name);
 		}
 
+		else if(strcmp(curseur_quads->op,"return") == 0)
+		{
+			//End of the programm
+			fprintf(outputFile,"li $v0 10\nsyscall\n");
+		}
 		else
 		{
 			fprintf(outputFile,"lw $t0 %s\n",curseur_quads->arg1->name);
@@ -135,9 +140,6 @@ void tradCodeFinal(char* outputFileName, struct quads* quads,struct symbol* tds)
 		fprintf(outputFile,"%s:\n",label->name);
 		//free(label->name);
 	}
-
-	//End of the programm
-	fprintf(outputFile,"li $v0 10\nsyscall");
 
 	//Close the MIPS file
 	fclose(outputFile);
