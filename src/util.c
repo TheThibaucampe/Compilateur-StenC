@@ -24,6 +24,7 @@ void free_tds(struct symbol* tds)
 		{
 			if (current_symbol->type == STENCIL_TYPE)
 			{
+				printf("Je désalloue un value_tab_stenc\n");
 				free(current_symbol->value_tab_stenc);
 			} else
 			{
