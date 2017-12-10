@@ -17,12 +17,13 @@
 -enum is_
 -controle de type
 -enum type
--mise du champ type dans tds
+-mise du champ type dans tds				OK
 -verification des regle (passage des attributs)
--remaniement des attribut de regles
--remaniement de la TDS
+-remaniement des attribut de regles			A PEU PRES
+-remaniement de la TDS					A PEU PRES
 -moins unaire verifier					OK
 -factoriser regle redondante a cause du type
--return
+-return							OK
+-controler si il y a au moin un return
 -attribution d'un expression booleenne dans var
 -variable initialisé de base ou pas?
