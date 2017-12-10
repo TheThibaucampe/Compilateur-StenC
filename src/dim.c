@@ -1,91 +1,99 @@
 #include "dim.h"
 
-void add_dim(struct symbol* tab, int taille)
+//Add a new dimension at athe end of the list
+void add_dim(struct symbol* array, int size)
 {
-	struct dim* list_dim = tab->taille_dim;
+	struct dim* list_dim = array->size_dim;
 
+	//Create the new linked dimension
 	struct dim* newDim = malloc(sizeof(struct dim));
+	newDim->size = size;
+	newDim->next = NULL;
 
-	newDim->size = taille;
-	newDim->suivant = NULL;
-
-
+	//If the list is empty
 	if(list_dim == NULL)
 	{
-		tab->taille_dim = newDim;
+		//Simply add it to the ring
+		array->size_dim = newDim;
 		return;
 	}
 
-	while(list_dim->suivant != NULL)
+	//Go though the list
+	while(list_dim->next != NULL)
 	{
-		list_dim = list_dim->suivant;
+		list_dim = list_dim->next;
 	}
-
-	
-	list_dim->suivant = newDim;
-	
+	//Add it at the end of the list
+	list_dim->next = newDim;
 }
 
-
-struct dim* appendToListDim(struct dim* dim, int val)
+//Add a new dimension at the beginning of a list
+struct dim* appendToListDim(struct dim* dim, int size)
 {
+	//Create the new dimension
 	struct dim* tmp = malloc(sizeof(struct dim));
-	tmp->size = val;
-	tmp->suivant = dim;
+	tmp->size = size;
+
+	//Add it at the beginning of the list
+	tmp->next = dim;
 
 	return tmp;
 }
 
-int dim_size(struct symbol* tds, char* tab_name, int dim)
+//Return the size of a given dimension
+int dim_size(struct symbol* tds, char* name, int dim)
 {
-	struct symbol* tab = lookup_tab(tds,tab_name);
-	if(tab == NULL)
+	//Get back the symbol of the array
+	struct symbol* array = lookup_tab(tds,name);
+	if(array == NULL)
 	{
-		printf("Erreur, %s n'est pas déclaré\n",tab_name);
+		printf("Erreur, %s n'est pas déclaré\n",name);
 		exit(-1);
 	}
-	if(tab->is_array == false)
+	if(array->is_array == false)
 	{
-		printf("Erreur, %s n'est pas un tableau\n",tab_name);
+		printf("Erreur, %s n'est pas un tableau\n",name);
 		exit(-1);
 	}
-	struct dim* list_dim = tab->taille_dim;
 
+	//Go through the list to find the right dimension
+	struct dim* list_dim = array->size_dim;
 	int tmp = 1;
-
 	while(list_dim != NULL)
 	{
 		if(tmp == dim)
 		{
+			//The right dimension is found
 			return list_dim->size;
 		}
-
 		tmp++;
-		list_dim = list_dim->suivant;
+		list_dim = list_dim->next;
 	}
 
-	printf("Erreur, %s n'a pas de %d i-eme dimension\n",tab_name,dim);
+	printf("Erreur, %s n'a pas de %d i-eme dimension\n",name,dim);
 	exit(-1);
 }
 
-
+//Check if 2 lists of dimensions are equal
 int checkDims(struct dim* d1, struct dim* d2)
 {
 	struct dim* curseur1 = d1;
 	struct dim* curseur2 = d2;
 
+	//Go through the lists
 	while(curseur1 != NULL && curseur2 != NULL)
 	{
+		//Check if the sizes of the dimensions are equal
 		if(curseur1->size != curseur2->size)
 		{
 			printf("Erreur de largeur : L1 = %d, L2 = %d\n", curseur1->size, curseur2->size);
 			exit(-1);
 		}
-
-		curseur1 = curseur1->suivant;
-		curseur2 = curseur2->suivant;
+		curseur1 = curseur1->next;
+		curseur2 = curseur2->next;
 	}
 
+	//Check if the length of the lists are the same
 	if(curseur1 != curseur2)
 	{
 		printf("Erreur dimension\n");
@@ -95,21 +103,25 @@ int checkDims(struct dim* d1, struct dim* d2)
 	return 1;
 }
 
-
-int checkDimsStencil(struct dim* list_dim,int rayon, int nb_dim)
+//Check if a list of dimensions matches the properties of a stencil
+int checkDimsStencil(struct dim* list_dim, int radius, int nb_dim)
 {
-	struct dim* curseur = list_dim->suivant;
+	//Go through the list
+	struct dim* curseur = list_dim->next;
 	int count = 0;
 	while (curseur != NULL && count <= nb_dim)
 	{
-		if (curseur->size != 2*rayon+1)
+		//Check radius condition
+		if (curseur->size != 2*radius+1)
 		{
 			printf("Condition de rayon non respectée\n");
 			exit(-1);
 		}
 		count++;
-		curseur = curseur->suivant;
+		curseur = curseur->next;
 	}
+
+	//Check the dimension condition
 	if (count != nb_dim)
 	{
 		printf("Mauvaise dimension attendue\n");

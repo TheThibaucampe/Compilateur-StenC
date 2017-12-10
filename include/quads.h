@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//Global value define in the Yacc file
 extern int nextquad;
 
 struct quads {
@@ -12,12 +13,11 @@ struct quads {
 	struct symbol* arg1;
 	struct symbol* arg2;
 	struct symbol* res;
-	struct quads* suivant;
+	struct quads* next;
 };
 
 struct quads* quadsGen(char* , struct symbol*,struct symbol*, struct symbol*);
 struct quads* quadsConcat(struct quads*, struct quads*, struct quads*);
 void quadsPrint(struct quads*);
-
 
 #endif
