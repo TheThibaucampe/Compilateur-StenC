@@ -36,8 +36,8 @@
 				int nb_dim;
 				struct symbol* decal;
 			};
+		//XXX possibilité de deplacer le rsult dans l'union et de mettre un symbol dans avec nb_dim
 		};
-		char* type;
 	} codegen;
 
 	struct{
@@ -354,27 +354,18 @@ var_int:
    variable_declaration
    {
      $$=$1;
-     $$.type = "int";
      printf("var_int -> variable_declaration\n");
    }
 
    | variable_declaration '=' expression
    {
-     struct symbol* tmp = lookup(tds,$1.result->nom);
-
-     if(tmp != NULL)
-     {
-       printf("Redéclaration de %s\n",$1.result->nom);
-       return -1;
-     }
-
+     $$=$1;
      if($1.decal != NULL)
      {
        printf("Erreur, %s est un tableau, impossible de mettre un int\n",$1.result->nom);
      }
      struct quads* newQuads = quadsGen("move",$3.result,NULL,$$.result);
      $$.code = quadsConcat($3.code,NULL,newQuads);
-     $$.type = "int";
 
      printf("var_int -> variable = expression\n");
    }
@@ -412,22 +403,22 @@ list_var_stencil:
 var_stencil:
    IDENTIFIER '{' NUMBER ',' NUMBER '}' '=' array
    {
-     struct symbol* tmp = lookup_tab(tds,$1);
+     struct symbol* tmp = lookup(tds,$1);
 
      if(tmp != NULL)
      {
        printf("Redéclaration de %s\n",$1);
-       return -1;
-     } else
-     {
-      $$.result = add(&tds, $1, false);
+       exit(-1);
      }
 
      checkDimsStencil($8.list_dim, $3, $5);
+
+     $$.result = add(&tds, $1, false);
+     $$.result->type = STENCIL_TYPE;
+
      $$.result->valeur_tab = translateListToTab($8.list_number); 
      $$.result->length = $8.list_number->taille;
 
-     $$.type = "stencil";
      $$.result->is_array = true;
      $$.result->radius = $3;
      $$.result->nb_dim = $5;
@@ -456,8 +447,6 @@ variable:
 
    | index_attribution ']'
    {
-    // struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
      $$.result = newtemp(&tds);
      struct quads* newQuads = quadsGen("load_from_tab",$1.result,$1.decal,$$.result);
      $$.code = quadsConcat($1.code,NULL,newQuads);
@@ -480,6 +469,7 @@ variable_declaration:
      }
 
      $$.result = add(&tds, $1, false);
+     $$.result->type = INT_TYPE;
      $$.code = NULL;
 
      printf("variable_declaration -> ID\n");
@@ -487,8 +477,6 @@ variable_declaration:
 
    | index_declaration ']'
    {
-     struct symbol* tmp = lookup_tab(tds,$1.result->nom);
-
      $1.result->length = $1.decal->valeur;
      $1.result->valeur_tab = malloc($1.decal->valeur*sizeof(int));
      $1.code = NULL;
@@ -512,15 +500,16 @@ index_declaration:
 
    | IDENTIFIER '[' NUMBER
    {
-     $$.result = add(&tds,$1,false);
+     struct symbol* tmp = lookup(tds,$1);
 
-     if($$.result != NULL)
+     if(tmp != NULL)
      {
        printf("Erreur, redeclaration de %s\n",$1);
        exit(-1);
      }
 
 
+     $$.result = add(&tds,$1,false);
      $$.result->is_array = true;
      add_dim($$.result,$3);
      $$.decal = (struct symbol*) malloc(sizeof(struct symbol));
@@ -825,7 +814,16 @@ expression:
    | IDENTIFIER '$' index_attribution ']'
     {
       struct symbol* stencil = lookup(tds,$1);
-      //TODO test si stencil
+      if(stencil == NULL)
+      {
+	printf("Erreur, %s n'est pas déclaré\n",$1);
+        exit(-1);
+      }
+      if(stencil->type != STENCIL_TYPE)
+      {
+        printf("Erreur %s n'est pas un stencil\n",$1);
+        exit(-1);
+      }
 
       int i;
       int nb_element = total_element(stencil->radius,stencil->nb_dim);
@@ -864,7 +862,16 @@ expression:
     | index_attribution ']' '$' IDENTIFIER
     {
       struct symbol* stencil = lookup(tds,$4);
-      //TODO test si stencil
+      if(stencil == NULL)
+      {
+	printf("Erreur, %s n'est pas déclaré\n",$1);
+        exit(-1);
+      }
+      if(stencil->type != STENCIL_TYPE)
+      {
+        printf("Erreur %s n'est pas un stencil\n",$1);
+        exit(-1);
+      }
 
       int i;
       int nb_element = total_element(stencil->radius,stencil->nb_dim);
